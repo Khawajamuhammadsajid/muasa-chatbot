@@ -1,0 +1,100 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:dev.sqlite"
+}
+
+model Session {
+  id                  String    @id
+  shop                String
+  state               String
+  isOnline            Boolean   @default(false)
+  scope               String?
+  expires             DateTime?
+  accessToken         String
+  userId              BigInt?
+  firstName           String?
+  lastName            String?
+  email               String?
+  accountOwner        Boolean   @default(false)
+  locale              String?
+  collaborator        Boolean?  @default(false)
+  emailVerified       Boolean?  @default(false)
+  refreshToken        String?
+  refreshTokenExpires DateTime?
+}
+
+model Shop {
+  id                    String         @id @default(uuid())
+  domain                String         @unique
+  installedAt           DateTime       @default(now())
+  uninstalledAt         DateTime?
+  plan                  String         @default("FREE") // "FREE", "STARTER", "PRO"
+  messagesUsedThisMonth Int            @default(0)
+  billingCycleStart     DateTime       @default(now())
+  subscriptionId        String?
+  settings              Settings?
+  conversations         Conversation[]
+  analytics             Analytics[]
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+}
+
+model Settings {
+  id            String   @id @default(uuid())
+  shopId        String   @unique
+  shop          Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  botName       String   @default("Shopping Assistant")
+  greeting      String   @default("Hello! How can I help you find what you are looking for today?")
+  brandTone     String   @default("Friendly, helpful luxury shopping assistant")
+  primaryColor  String   @default("#111111")
+  accentColor   String   @default("#6366f1")
+  position      String   @default("bottom-right") // "bottom-right", "bottom-left"
+  enabled       Boolean  @default(true)
+  supportEmail  String?
+  retentionDays Int      @default(30)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Conversation {
+  id                String    @id @default(uuid())
+  shopId            String
+  shop              Shop      @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  customerSessionId String
+  messages          Message[]
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([shopId, createdAt])
+}
+
+model Message {
+  id                  String       @id @default(uuid())
+  conversationId      String
+  conversation        Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role                String       // "user" | "assistant" | "system"
+  content             String
+  productsRecommended String?      // JSON string array of product handles/ids
+  createdAt           DateTime     @default(now())
+
+  @@index([conversationId])
+}
+
+model Analytics {
+  id            String   @id @default(uuid())
+  shopId        String
+  shop          Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  eventType     String   // "chat_started", "message_sent", "product_clicked", "add_to_cart_clicked"
+  productHandle String?
+  metadata      String?  // JSON string
+  createdAt     DateTime @default(now())
+
+  @@index([shopId, eventType, createdAt])
+}

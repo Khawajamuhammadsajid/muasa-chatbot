@@ -1,0 +1,223 @@
+{% comment %}
+  =============================================================================
+  Muasa Bot - Luxury AI Customer Care & Shopping Concierge
+  Inspired by barebeautypk.com UI/UX
+  =============================================================================
+{% endcomment %}
+
+{{ 'muasa-bot.css' | asset_url | stylesheet_tag }}
+
+<div 
+  id="muasa-bot-root" 
+  class="muasa-bot-wrapper" 
+  data-position="{{ block.settings.position | default: 'bottom-right' }}"
+>
+  <!-- Floating Launcher Button -->
+  <button 
+    id="muasa-launcher-btn" 
+    class="muasa-launcher" 
+    aria-label="Open {{ shop.name }} AI Assistant" 
+    aria-expanded="false"
+    aria-controls="muasa-chat-modal"
+    type="button"
+  >
+    <div class="muasa-launcher-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M12 2L14.39 8.26L21 9.27L16.27 13.97L17.5 20.6L12 17.27L6.5 20.6L7.73 13.97L3 9.27L9.61 8.26L12 2Z" fill="currentColor"/>
+      </svg>
+      <span class="muasa-beacon-dot"></span>
+    </div>
+    <span class="muasa-launcher-text">{{ block.settings.button_text | default: "Shop with AI" }}</span>
+  </button>
+
+  <!-- Luxury Obsidian Dark AI Chat Modal (barebeautypk.com style) -->
+  <div 
+    id="muasa-chat-modal" 
+    class="muasa-chat-window" 
+    style="display: none;" 
+    role="dialog" 
+    aria-modal="true"
+    aria-labelledby="muasa-header-title"
+    tabindex="-1"
+  >
+    <!-- Header -->
+    <div class="muasa-header">
+      <div class="muasa-header-brand">
+        <div class="muasa-avatar" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111111" stroke-width="2.5">
+            <path d="M12 2L14.39 8.26L21 9.27L16.27 13.97L17.5 20.6L12 17.27L6.5 20.6L7.73 13.97L3 9.27L9.61 8.26L12 2Z" fill="#111111"/>
+          </svg>
+        </div>
+        <div class="muasa-brand-info">
+          <div id="muasa-header-title" class="muasa-brand-name">{{ shop.name }} AI</div>
+        </div>
+      </div>
+      <div class="muasa-header-actions">
+        <!-- Cart Action Icon -->
+        <a href="{{ routes.cart_url }}" class="muasa-icon-btn" aria-label="View Shopping Cart" title="View Cart">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="9" cy="21" r="1"></circle>
+            <circle cx="20" cy="21" r="1"></circle>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+          </svg>
+        </a>
+
+        <!-- Sound Toggle -->
+        <button id="muasa-sound-btn" class="muasa-icon-btn" aria-label="Toggle sound" type="button" title="Sound notifications">
+          <svg id="muasa-sound-off-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="1" y1="1" x2="23" y2="23"></line>
+            <path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"></path>
+            <path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"></path>
+            <line x1="12" y1="19" x2="12" y2="23"></line>
+            <line x1="8" y1="23" x2="16" y2="23"></line>
+          </svg>
+          <svg id="muasa-sound-on-icon" style="display: none;" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+          </svg>
+        </button>
+
+        <!-- Options (3 Dots) Menu -->
+        <div class="muasa-options-wrap">
+          <button 
+            id="muasa-options-btn" 
+            class="muasa-icon-btn" 
+            aria-label="Chat options" 
+            aria-expanded="false" 
+            aria-controls="muasa-options-menu"
+            type="button" 
+            title="Chat options"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="12" cy="12" r="2"></circle>
+              <circle cx="12" cy="5" r="2"></circle>
+              <circle cx="12" cy="19" r="2"></circle>
+            </svg>
+          </button>
+          <div id="muasa-options-menu" class="muasa-options-dropdown" style="display: none;" role="menu">
+            <button id="muasa-new-chat-btn" class="muasa-dropdown-item" type="button" role="menuitem">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 5v14M5 12h14"></path>
+              </svg>
+              <span>New Chat</span>
+            </button>
+            {% if block.settings.support_email != blank or shop.email != blank %}
+              <a 
+                class="muasa-dropdown-item" 
+                href="mailto:{{ block.settings.support_email | default: shop.email }}?subject=Customer%20Support%20Request" 
+                target="_blank" 
+                rel="noopener"
+                role="menuitem"
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                  <polyline points="22,6 12,13 2,6"></polyline>
+                </svg>
+                <span>Email Support</span>
+              </a>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Close Button -->
+        <button id="muasa-close-btn" class="muasa-icon-btn" aria-label="Close Assistant" type="button">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Messages Container -->
+    <div id="muasa-messages-box" class="muasa-messages-body" aria-live="polite" role="log">
+      <!-- Welcome Hero Banner -->
+      <div id="muasa-welcome-hero" class="muasa-welcome-hero">
+        <h2 class="muasa-hero-title">Welcome to {{ shop.name }} 👋</h2>
+        <p class="muasa-hero-subtitle">Ask me anything you are interested in.</p>
+        
+        <!-- Category & Collection Carousel -->
+        <div id="muasa-carousel-container" class="muasa-carousel-wrapper">
+          <div id="muasa-collections-carousel" class="muasa-carousel-track">
+            <!-- Injected dynamically by JS -->
+          </div>
+          <button id="muasa-carousel-next" class="muasa-carousel-arrow" type="button" aria-label="Next categories">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Exploration Chips -->
+    <div id="muasa-chips-box" class="muasa-chips-container" role="group" aria-label="Suggested quick questions">
+      <!-- Chips injected by JS -->
+    </div>
+
+    <!-- Dark Pill Input Form (barebeautypk style) -->
+    <form id="muasa-chat-form" class="muasa-input-area">
+      <div class="muasa-input-wrapper">
+        <input 
+          type="text" 
+          id="muasa-user-input" 
+          placeholder="Message {{ shop.name }} AI" 
+          autocomplete="off" 
+          maxlength="500"
+          aria-label="Message store AI assistant"
+        />
+        <button id="muasa-send-btn" type="submit" aria-label="Send Message">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="22" y1="2" x2="11" y2="13"/>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  window.MUASA_BOT_CONFIG = {
+    shopDomain: {{ shop.permanent_domain | json }},
+    shopName: {{ shop.name | json }},
+    currency: {{ cart.currency.iso_code | default: "PKR" | json }},
+    currencySymbol: {{ cart.currency.symbol | default: "Rs." | json }},
+    proxyUrl: "/apps/muasa-bot",
+    welcomeMessage: {{ block.settings.welcome_message | default: "Welcome! How can our customer care team assist your shopping today?" | json }},
+    supportEmail: {{ block.settings.support_email | default: shop.email | json }}
+  };
+</script>
+
+<script src="{{ 'muasa-bot.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "Muasa AI Assistant",
+  "target": "body",
+  "settings": [
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Launcher Button Label",
+      "default": "Shop with AI"
+    },
+    {
+      "type": "text",
+      "id": "support_email",
+      "label": "Customer Support Email",
+      "info": "Leave blank to use default store contact email"
+    },
+    {
+      "type": "select",
+      "id": "position",
+      "label": "Screen Position",
+      "options": [
+        { "value": "bottom-right", "label": "Bottom Right" },
+        { "value": "bottom-left", "label": "Bottom Left" }
+      ],
+      "default": "bottom-right"
+    }
+  ]
+}
+{% endschema %}
