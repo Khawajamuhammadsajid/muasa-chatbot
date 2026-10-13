@@ -130,7 +130,7 @@ export async function processCustomerChat({
   customerContext = {},
   conversationHistory = [],
   offset = 0,
-  apiKey = process.env.GEMINI_API_KEY
+  apiKey = process.env.GEMINI_API_KEY || process.env.GEMINI_KEY_API
 }) {
   const message = userMessage || rawMessage;
   const mergedContext = {
