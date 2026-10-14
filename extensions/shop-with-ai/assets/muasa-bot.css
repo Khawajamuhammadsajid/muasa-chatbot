@@ -570,36 +570,403 @@
   border-color: #71717a;
 }
 
-/* Proceed to Checkout Banner */
+/* Proceed to Checkout Banner with 3 Action Buttons */
 .muasa-checkout-banner {
   background: #18181b;
-  border: 1px solid #10b981;
+  border: 1px solid #27272a;
+  border-left: 3px solid #10b981;
   border-radius: 14px;
-  padding: 10px 14px;
-  margin-top: 10px;
+  padding: 12px 14px;
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: muasaFadeIn 0.25s ease-out;
+}
+
+.muasa-banner-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
 }
 
-.muasa-checkout-btn {
-  background: #10b981;
-  color: #ffffff;
-  text-decoration: none;
-  font-weight: 700;
-  font-size: 13px;
-  border-radius: 20px;
-  padding: 8px 16px;
+.muasa-banner-badge {
   display: inline-flex;
   align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.12);
+  padding: 3px 8px;
+  border-radius: 12px;
+}
+
+.muasa-banner-subtitle {
+  font-size: 12px;
+  color: #a1a1aa;
+}
+
+.muasa-banner-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.muasa-banner-btn {
+  width: 100%;
+  border-radius: 50px;
+  padding: 9px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   gap: 6px;
   border: none;
   cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: var(--muasa-font);
 }
 
-.muasa-checkout-btn:hover {
+.muasa-banner-checkout-btn {
+  background: #10b981;
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+}
+
+.muasa-banner-checkout-btn:hover {
   background: #059669;
+  transform: translateY(-1px);
+}
+
+.muasa-banner-similar-btn,
+.muasa-banner-bestseller-btn {
+  background: #27272a;
+  color: #f4f4f5;
+  border: 1px solid #3f3f46;
+}
+
+.muasa-banner-similar-btn:hover,
+.muasa-banner-bestseller-btn:hover {
+  background: #3f3f46;
+  color: #ffffff;
+  border-color: #52525b;
+  transform: translateY(-1px);
+}
+
+/* In-Chat Checkout Full View */
+.muasa-checkout-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  background: var(--muasa-bg);
+  padding: 16px;
+  gap: 14px;
+  color: #ffffff;
+  font-family: var(--muasa-font);
+  animation: muasaFadeIn 0.25s ease-out;
+}
+
+.muasa-checkout-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #27272a;
+  padding-bottom: 12px;
+}
+
+.muasa-checkout-header-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.muasa-checkout-back-btn {
+  background: #27272a;
+  border: 1px solid #3f3f46;
+  color: #d4d4d8;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 16px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s;
+}
+
+.muasa-checkout-back-btn:hover {
+  background: #3f3f46;
+  color: #ffffff;
+}
+
+.muasa-checkout-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #a1a1aa;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.muasa-checkout-items-card {
+  background: #18181b;
+  border: 1px solid #27272a;
+  border-radius: 14px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.muasa-checkout-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #27272a;
+}
+
+.muasa-checkout-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.muasa-checkout-item-img {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: #27272a;
+  flex-shrink: 0;
+}
+
+.muasa-checkout-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.muasa-checkout-item-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.muasa-checkout-item-meta {
+  font-size: 11.5px;
+  color: #a1a1aa;
+}
+
+.muasa-checkout-item-price {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.muasa-checkout-totals {
+  border-top: 1px dashed #3f3f46;
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.muasa-checkout-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12.5px;
+  color: #a1a1aa;
+}
+
+.muasa-checkout-row.muasa-checkout-total {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid #27272a;
+}
+
+.muasa-checkout-form {
+  background: #18181b;
+  border: 1px solid #27272a;
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.muasa-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.muasa-form-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #d4d4d8;
+}
+
+.muasa-form-input,
+.muasa-form-textarea {
+  background: #101012;
+  border: 1px solid #3f3f46;
+  border-radius: 10px;
+  padding: 9px 12px;
+  color: #ffffff;
+  font-size: 13px;
+  font-family: var(--muasa-font);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.muasa-form-input:focus,
+.muasa-form-textarea:focus {
+  border-color: #10b981;
+}
+
+.muasa-form-textarea {
+  resize: vertical;
+  min-height: 52px;
+}
+
+.muasa-payment-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 12.5px;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.muasa-order-submit-btn {
+  background: #10b981;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  border: none;
+  border-radius: 50px;
+  padding: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 18px rgba(16, 185, 129, 0.4);
+  transition: all 0.2s;
+  font-family: var(--muasa-font);
+  margin-top: 4px;
+}
+
+.muasa-order-submit-btn:hover {
+  background: #059669;
+  transform: translateY(-1px);
+}
+
+.muasa-order-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.muasa-shopify-direct-link {
+  text-align: center;
+  font-size: 11.5px;
+  color: #71717a;
+  text-decoration: underline;
+  cursor: pointer;
+  margin-top: 4px;
+}
+
+.muasa-shopify-direct-link:hover {
+  color: #a1a1aa;
+}
+
+/* Order Success Confirmation */
+.muasa-order-success {
+  background: #18181b;
+  border: 1px solid #10b981;
+  border-radius: 16px;
+  padding: 24px 18px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin: auto 0;
+  animation: muasaScaleIn 0.3s ease-out;
+}
+
+.muasa-success-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.35);
+}
+
+.muasa-success-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.muasa-success-ref {
+  font-size: 12px;
+  color: #10b981;
+  font-weight: 700;
+  background: #101012;
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid #27272a;
+}
+
+.muasa-success-body {
+  font-size: 13px;
+  color: #a1a1aa;
+  line-height: 1.5;
+}
+
+.muasa-continue-shopping-btn {
+  background: #ffffff;
+  color: #111111;
+  font-size: 13px;
+  font-weight: 700;
+  border: none;
+  border-radius: 50px;
+  padding: 10px 22px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 6px;
+}
+
+.muasa-continue-shopping-btn:hover {
+  background: #f4f4f5;
+  transform: translateY(-1px);
 }
 
 /* Chips */

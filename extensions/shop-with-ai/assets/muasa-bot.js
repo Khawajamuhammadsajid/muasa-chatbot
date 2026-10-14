@@ -30,6 +30,7 @@
   let savedMessages = [];
   let currentSearchQuery = '';
   let currentOffset = 0;
+  let lastAddedProduct = null;
 
   // Persistent storage keys per shop domain
   const shopKey = (config.shopDomain || window.location.hostname || 'store').replace(/\W+/g, '_');
@@ -135,6 +136,15 @@
     if (carouselNext && carouselTrack) {
       carouselNext.addEventListener('click', () => {
         carouselTrack.scrollBy({ left: 160, behavior: 'smooth' });
+      });
+    }
+
+    // Cart Action Icon in Header (Open In-Chat Checkout)
+    const cartHeaderBtn = document.querySelector('.muasa-header-actions a[href*="cart"]');
+    if (cartHeaderBtn) {
+      cartHeaderBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        openInChatCheckout();
       });
     }
 
@@ -492,9 +502,17 @@
       chip.className = 'muasa-chip';
       chip.textContent = chipText;
       chip.addEventListener('click', () => {
-        currentSearchQuery = chipText;
-        currentOffset = 0;
-        sendCustomerMessage(chipText, 0);
+        if (chipText.includes('Proceed to Checkout') || chipText.includes('Checkout')) {
+          openInChatCheckout();
+        } else if (chipText.includes('Similar Products')) {
+          exploreSimilarProducts();
+        } else if (chipText.includes('Best Seller')) {
+          exploreBestSellers();
+        } else {
+          currentSearchQuery = chipText;
+          currentOffset = 0;
+          sendCustomerMessage(chipText, 0);
+        }
       });
       chipsBox.appendChild(chip);
     });
@@ -591,6 +609,16 @@
     }
   }
 
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   async function handleAddToCart(variantId, buttonElement) {
     if (!variantId) {
       buttonElement.textContent = 'Check in Store';
@@ -616,7 +644,17 @@
         buttonElement.classList.add('in-cart');
         buttonElement.disabled = false;
 
-        // Persist cart items added
+        // Persist cart items added & track product details
+        const card = buttonElement.closest('.muasa-product-card');
+        if (card) {
+          const titleEl = card.querySelector('.muasa-card-title');
+          lastAddedProduct = {
+            title: titleEl ? titleEl.textContent.trim() : '',
+            handle: card.getAttribute('data-product-handle') || '',
+            variantId: variantId
+          };
+        }
+
         try {
           const currentCount = parseInt(localStorage.getItem(STORAGE_CART_KEY) || '0', 10) + 1;
           localStorage.setItem(STORAGE_CART_KEY, String(currentCount));
@@ -624,18 +662,17 @@
           void _;
         }
 
-        // Show/Update prominent Proceed to Checkout Banner
+        // Show/Update prominent 3-Action Banner in chat
         showCheckoutBanner();
 
-        // Render Checkout & Next steps Chips
+        // Render Action Chips
         renderChips([
           'Proceed to Checkout',
-          'View Shopping Cart',
-          'Explore More Products',
-          'Delivery & COD Info'
+          'Explore Similar Products',
+          'Best Seller Collection'
         ]);
 
-        trackEvent('add_to_cart_clicked');
+        trackEvent('add_to_cart_clicked', lastAddedProduct?.handle);
 
         // Fire Shopify theme cart events for header cart counters without leaving chat
         document.dispatchEvent(new CustomEvent('cart:updated', { bubbles: true }));
@@ -665,19 +702,285 @@
       messagesBox.appendChild(banner);
     }
 
+    const itemLabel = lastAddedProduct?.title ? `"${lastAddedProduct.title}" added to cart!` : 'Item added to cart!';
+
     banner.innerHTML = `
-      <div>
-        <strong style="color: #ffffff; font-size: 13.5px;">✓ Item added to cart!</strong>
-        <div style="color: #a1a1aa; font-size: 11.5px;">Ready to complete your order?</div>
+      <div class="muasa-banner-header">
+        <span class="muasa-banner-badge">✓ In Cart</span>
+        <span class="muasa-banner-subtitle">${escapeHtml(itemLabel)}</span>
       </div>
-      <a class="muasa-checkout-btn" href="/checkout">
-        Proceed to Checkout →
-      </a>
+      <div class="muasa-banner-actions">
+        <button class="muasa-banner-btn muasa-banner-checkout-btn" type="button" id="muasa-banner-checkout-btn">
+          🛒 Proceed to Checkout
+        </button>
+        <button class="muasa-banner-btn muasa-banner-similar-btn" type="button" id="muasa-banner-similar-btn">
+          🔍 Explore Similar Products
+        </button>
+        <button class="muasa-banner-btn muasa-banner-bestseller-btn" type="button" id="muasa-banner-bestseller-btn">
+          ⭐ Best Seller Collection
+        </button>
+      </div>
     `;
+
+    document.getElementById('muasa-banner-checkout-btn')?.addEventListener('click', openInChatCheckout);
+    document.getElementById('muasa-banner-similar-btn')?.addEventListener('click', exploreSimilarProducts);
+    document.getElementById('muasa-banner-bestseller-btn')?.addEventListener('click', exploreBestSellers);
+
     scrollToBottom();
   }
 
-  function trackEvent(eventType, productHandle = null) {
+  function exploreSimilarProducts() {
+    const title = lastAddedProduct?.title || '';
+    const query = title ? `Show similar products to ${title}` : 'Explore similar products';
+    currentSearchQuery = query;
+    currentOffset = 0;
+    sendCustomerMessage(query, 0);
+  }
+
+  function exploreBestSellers() {
+    const query = 'Explore Best Sellers';
+    currentSearchQuery = query;
+    currentOffset = 0;
+    sendCustomerMessage(query, 0);
+  }
+
+  async function openInChatCheckout() {
+    const checkoutView = document.getElementById('muasa-checkout-view');
+    const messagesBox = document.getElementById('muasa-messages-box');
+    const chipsBox = document.getElementById('muasa-chips-box');
+    const chatForm = document.getElementById('muasa-chat-form');
+    if (!checkoutView) return;
+
+    checkoutView.innerHTML = `
+      <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #a1a1aa; gap: 10px; padding: 40px 0;">
+        <div style="font-size: 24px; color: #10b981;">✦</div>
+        <div style="font-size: 13px;">Loading your cart items...</div>
+      </div>
+    `;
+    checkoutView.style.display = 'flex';
+    if (messagesBox) messagesBox.style.display = 'none';
+    if (chipsBox) chipsBox.style.display = 'none';
+    if (chatForm) chatForm.style.display = 'none';
+
+    try {
+      const res = await fetch('/cart.js');
+      const cart = await res.json();
+      renderCheckoutContent(cart);
+    } catch (err) {
+      console.error('[MuasaBot] Failed to load cart:', err);
+      checkoutView.innerHTML = `
+        <div class="muasa-checkout-header">
+          <span class="muasa-checkout-header-title">Quick Checkout 🛒</span>
+          <button type="button" class="muasa-checkout-back-btn" id="muasa-checkout-err-back">← Back to Chat</button>
+        </div>
+        <div style="text-align: center; padding: 30px 10px; color: #ef4444; font-size: 13px;">
+          Could not load cart items. Please try again.
+        </div>
+      `;
+      document.getElementById('muasa-checkout-err-back')?.addEventListener('click', closeInChatCheckout);
+    }
+  }
+
+  function closeInChatCheckout() {
+    const checkoutView = document.getElementById('muasa-checkout-view');
+    const messagesBox = document.getElementById('muasa-messages-box');
+    const chipsBox = document.getElementById('muasa-chips-box');
+    const chatForm = document.getElementById('muasa-chat-form');
+    if (checkoutView) checkoutView.style.display = 'none';
+    if (messagesBox) messagesBox.style.display = 'flex';
+    if (chipsBox) chipsBox.style.display = 'flex';
+    if (chatForm) chatForm.style.display = 'block';
+    scrollToBottom();
+  }
+
+  function renderCheckoutContent(cart) {
+    const checkoutView = document.getElementById('muasa-checkout-view');
+    if (!checkoutView) return;
+
+    if (!cart.items || cart.items.length === 0) {
+      checkoutView.innerHTML = `
+        <div class="muasa-checkout-header">
+          <span class="muasa-checkout-header-title">Quick Checkout 🛒</span>
+          <button type="button" class="muasa-checkout-back-btn" id="muasa-empty-back-btn">← Back to Chat</button>
+        </div>
+        <div style="text-align: center; padding: 50px 14px; color: #a1a1aa; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+          <div style="font-size: 36px;">🛒</div>
+          <strong style="color: #ffffff; font-size: 15px;">Your Shopping Cart is Empty</strong>
+          <p style="font-size: 12.5px; color: #a1a1aa; max-width: 240px; margin: 4px 0 12px 0;">Add products from our recommendations or store to checkout right here!</p>
+          <button type="button" class="muasa-continue-shopping-btn" id="muasa-empty-browse-btn">
+            Explore Best Sellers →
+          </button>
+        </div>
+      `;
+      document.getElementById('muasa-empty-back-btn')?.addEventListener('click', closeInChatCheckout);
+      document.getElementById('muasa-empty-browse-btn')?.addEventListener('click', () => {
+        closeInChatCheckout();
+        exploreBestSellers();
+      });
+      return;
+    }
+
+    const totalFormatted = ((cart.total_price || 0) / 100).toLocaleString();
+
+    let itemsHtml = '';
+    cart.items.forEach((item) => {
+      const itemImg = item.featured_image?.url || item.image || '';
+      const itemTitle = item.product_title || item.title || 'Product';
+      const variantText = item.variant_title ? `${item.variant_title} • ` : '';
+      const linePrice = ((item.final_line_price || item.line_price || item.price) / 100).toLocaleString();
+
+      itemsHtml += `
+        <div class="muasa-checkout-item">
+          ${itemImg ? `<img class="muasa-checkout-item-img" src="${itemImg}" alt="${escapeHtml(itemTitle)}" />` : '<div class="muasa-checkout-item-img"></div>'}
+          <div class="muasa-checkout-item-info">
+            <div class="muasa-checkout-item-name">${escapeHtml(itemTitle)}</div>
+            <div class="muasa-checkout-item-meta">${escapeHtml(variantText)}Qty: ${item.quantity}</div>
+          </div>
+          <div class="muasa-checkout-item-price">${config.currencySymbol} ${linePrice}</div>
+        </div>
+      `;
+    });
+
+    checkoutView.innerHTML = `
+      <div class="muasa-checkout-header">
+        <span class="muasa-checkout-header-title">Quick Checkout 🛒</span>
+        <button type="button" class="muasa-checkout-back-btn" id="muasa-form-back-btn">← Back to Chat</button>
+      </div>
+
+      <div class="muasa-checkout-section-title">Order Items (${cart.item_count})</div>
+      <div class="muasa-checkout-items-card">
+        ${itemsHtml}
+        <div class="muasa-checkout-totals">
+          <div class="muasa-checkout-row">
+            <span>Subtotal</span>
+            <span>${config.currencySymbol} ${totalFormatted}</span>
+          </div>
+          <div class="muasa-checkout-row">
+            <span>Delivery</span>
+            <span style="color: #10b981; font-weight: 600;">FREE (Standard)</span>
+          </div>
+          <div class="muasa-checkout-row muasa-checkout-total">
+            <span>Total Amount</span>
+            <span style="color: #10b981;">${config.currencySymbol} ${totalFormatted}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="muasa-checkout-section-title">Shipping & Contact Details</div>
+      <form id="muasa-order-form" class="muasa-checkout-form">
+        <div class="muasa-form-field">
+          <label class="muasa-form-label" for="muasa-cust-name">Full Name *</label>
+          <input type="text" id="muasa-cust-name" class="muasa-form-input" placeholder="e.g. Muhammad Ali" required />
+        </div>
+
+        <div class="muasa-form-field">
+          <label class="muasa-form-label" for="muasa-cust-phone">Phone / WhatsApp Number *</label>
+          <input type="tel" id="muasa-cust-phone" class="muasa-form-input" placeholder="e.g. 0300 1234567" required />
+        </div>
+
+        <div class="muasa-form-field">
+          <label class="muasa-form-label" for="muasa-cust-address">Delivery Address *</label>
+          <textarea id="muasa-cust-address" class="muasa-form-textarea" placeholder="House/Flat #, Street, Area..." required></textarea>
+        </div>
+
+        <div class="muasa-form-field">
+          <label class="muasa-form-label" for="muasa-cust-city">City *</label>
+          <input type="text" id="muasa-cust-city" class="muasa-form-input" placeholder="e.g. Lahore / Karachi / Islamabad" required />
+        </div>
+
+        <div class="muasa-payment-badge">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2">
+            <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+            <line x1="2" y1="10" x2="22" y2="10"></line>
+          </svg>
+          <span>Cash on Delivery (Pay when order arrives)</span>
+        </div>
+
+        <button type="submit" id="muasa-submit-order-btn" class="muasa-order-submit-btn">
+          ✓ Place Order (Cash on Delivery)
+        </button>
+
+        <a href="/checkout" class="muasa-shopify-direct-link" target="_blank" rel="noopener">
+          Or proceed to standard Shopify Checkout ↗
+        </a>
+      </form>
+    `;
+
+    document.getElementById('muasa-form-back-btn')?.addEventListener('click', closeInChatCheckout);
+
+    const form = document.getElementById('muasa-order-form');
+    if (!form) return;
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const submitBtn = document.getElementById('muasa-submit-order-btn');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Processing Order...';
+      }
+
+      const name = document.getElementById('muasa-cust-name')?.value?.trim() || '';
+      const phone = document.getElementById('muasa-cust-phone')?.value?.trim() || '';
+      const address = document.getElementById('muasa-cust-address')?.value?.trim() || '';
+      const city = document.getElementById('muasa-cust-city')?.value?.trim() || '';
+
+      const orderRef = Math.floor(100000 + Math.random() * 900000);
+
+      // 1. Log order event to app backend
+      trackEvent('order_placed', null, {
+        customerName: name,
+        phone: phone,
+        address: address,
+        city: city,
+        itemCount: cart.item_count,
+        totalPrice: cart.total_price / 100,
+        orderRef: String(orderRef),
+        items: (cart.items || []).map(i => ({
+          title: i.title,
+          quantity: i.quantity,
+          price: i.price / 100
+        }))
+      });
+
+      // 2. Clear cart
+      try {
+        await fetch('/cart/clear.js', { method: 'POST' });
+        document.dispatchEvent(new CustomEvent('cart:updated', { bubbles: true }));
+        try { localStorage.removeItem(STORAGE_CART_KEY); } catch (_) { void _; }
+      } catch (_) {
+        void _;
+      }
+
+      // 3. Render Order Confirmation
+      checkoutView.innerHTML = `
+        <div class="muasa-order-success">
+          <div class="muasa-success-icon">✓</div>
+          <div class="muasa-success-title">Order Confirmed! 🎉</div>
+          <div class="muasa-success-ref">Order Reference: #MB-${orderRef}</div>
+          <div class="muasa-success-body">
+            Thank you, <strong>${escapeHtml(name)}</strong>!<br/><br/>
+            Your order of <strong>${config.currencySymbol} ${totalFormatted}</strong> has been received for <strong>Cash on Delivery</strong>.<br/><br/>
+            Package will be dispatched to:<br/>
+            <strong>${escapeHtml(address)}, ${escapeHtml(city)}</strong><br/><br/>
+            Our team will contact you at <strong>${escapeHtml(phone)}</strong> to confirm dispatch.
+          </div>
+          <button type="button" class="muasa-continue-shopping-btn" id="muasa-order-continue-btn">
+            Continue Shopping →
+          </button>
+        </div>
+      `;
+
+      document.getElementById('muasa-order-continue-btn')?.addEventListener('click', () => {
+        closeInChatCheckout();
+        appendMessage(
+          'ai',
+          `Order **#MB-${orderRef}** has been confirmed for **${escapeHtml(name)}**! Your package is being prepared. Is there any other product or question I can help you with?`
+        );
+      });
+    });
+  }
+
+  function trackEvent(eventType, productHandle = null, customMetadata = null) {
     try {
       const endpoint = `${config.proxyUrl || '/apps/muasa-bot'}/track`;
       fetch(endpoint, {
@@ -687,7 +990,10 @@
           action: 'track',
           eventType: eventType,
           productHandle: productHandle,
-          metadata: { sessionId: customerSessionId }
+          metadata: {
+            sessionId: customerSessionId,
+            ...(customMetadata || {})
+          }
         })
       }).catch((err) => {
         void err;

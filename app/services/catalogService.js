@@ -237,6 +237,7 @@ const STOP_WORDS = new Set([
   "of", "with", "by", "from", "is", "are", "was", "were", "be", "been", "have", "has", "had",
   "do", "does", "did", "need", "want", "give", "show", "get", "find", "looking", "look", "buy",
   "kya", "hai", "hain", "ko", "ki", "ka", "ke", "se", "mein", "me", "mai", "mujhe", "chahiye",
+  "yeh", "ye", "woh", "wo", "wala", "wali", "wale", "item", "items", "product", "products",
   "batao", "dikhao", "koi", "kuch", "hoga", "please", "can", "tell", "karo", "acha", "achi"
 ]);
 
@@ -289,6 +290,8 @@ export function searchCatalogProducts(catalog = [], query = "", limit = 5, offse
     q.includes("all items") ||
     q.includes("explore best") ||
     q.includes("best seller") ||
+    q.includes("explore similar") ||
+    (q.includes("similar") && !q.includes("to ")) ||
     q.includes("full catalog") ||
     q === "all" ||
     q === "products" ||

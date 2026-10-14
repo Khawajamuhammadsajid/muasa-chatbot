@@ -24,7 +24,7 @@ const ChatRequestSchema = z.object({
 
 const TrackRequestSchema = z.object({
   action: z.literal("track"),
-  eventType: z.enum(["chat_started", "product_clicked", "add_to_cart_clicked"]),
+  eventType: z.enum(["chat_started", "product_clicked", "add_to_cart_clicked", "order_placed"]),
   productHandle: z.string().optional(),
   metadata: z.record(z.any()).optional()
 });
