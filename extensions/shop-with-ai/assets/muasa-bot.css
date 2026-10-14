@@ -664,12 +664,16 @@
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  overflow-x: hidden;
   background: var(--muasa-bg);
   padding: 16px;
   gap: 14px;
   color: #ffffff;
   font-family: var(--muasa-font);
   animation: muasaFadeIn 0.25s ease-out;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
 }
 
 .muasa-checkout-header {
@@ -726,6 +730,8 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .muasa-checkout-item {
@@ -734,6 +740,8 @@
   gap: 10px;
   padding-bottom: 8px;
   border-bottom: 1px solid #27272a;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .muasa-checkout-item:last-child {
@@ -808,12 +816,18 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  max-width: 100%;
 }
 
 .muasa-form-field {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .muasa-form-label {
@@ -833,6 +847,10 @@
   font-family: var(--muasa-font);
   outline: none;
   transition: border-color 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .muasa-form-input:focus,
@@ -847,8 +865,10 @@
 
 .muasa-form-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .muasa-form-select {
@@ -862,6 +882,10 @@
   outline: none;
   transition: border-color 0.2s;
   cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .muasa-form-select:focus {
@@ -872,6 +896,8 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .muasa-payment-card {
@@ -884,6 +910,8 @@
   padding: 10px 12px;
   cursor: pointer;
   transition: all 0.2s;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .muasa-payment-card:hover {
@@ -947,6 +975,8 @@
   transition: all 0.2s;
   font-family: var(--muasa-font);
   margin-top: 4px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .muasa-order-submit-btn:hover {
@@ -1250,5 +1280,16 @@
     left: 0;
     max-width: 100vw;
     border-radius: 20px 20px 0 0;
+  }
+
+  .muasa-checkout-view {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 360px) {
+  .muasa-form-row {
+    grid-template-columns: 1fr;
+    gap: 10px;
   }
 }
