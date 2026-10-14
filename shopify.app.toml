@@ -9,7 +9,7 @@ embedded = true
 # Minimum scopes required:
 # - read_products: Required to retrieve product titles, prices, descriptions, and variants to provide grounded shopping assistance.
 # - read_inventory: Required to verify real-time inventory levels so out-of-stock items are not recommended.
-scopes = "read_products,read_inventory"
+scopes = "read_products,read_inventory,write_draft_orders,read_draft_orders,write_orders,read_orders"
 
 [app_proxy]
 url = "/api/proxy"

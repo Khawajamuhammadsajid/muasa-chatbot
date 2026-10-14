@@ -845,6 +845,78 @@
   min-height: 52px;
 }
 
+.muasa-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.muasa-form-select {
+  background: #101012;
+  border: 1px solid #3f3f46;
+  border-radius: 10px;
+  padding: 9px 12px;
+  color: #ffffff;
+  font-size: 13px;
+  font-family: var(--muasa-font);
+  outline: none;
+  transition: border-color 0.2s;
+  cursor: pointer;
+}
+
+.muasa-form-select:focus {
+  border-color: #10b981;
+}
+
+.muasa-payment-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.muasa-payment-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #101012;
+  border: 1px solid #3f3f46;
+  border-radius: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.muasa-payment-card:hover {
+  border-color: #52525b;
+}
+
+.muasa-payment-card.active {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.muasa-payment-card input[type="radio"] {
+  accent-color: #10b981;
+  cursor: pointer;
+}
+
+.muasa-payment-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.muasa-payment-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.muasa-payment-sub {
+  font-size: 11px;
+  color: #a1a1aa;
+}
+
 .muasa-payment-badge {
   display: flex;
   align-items: center;

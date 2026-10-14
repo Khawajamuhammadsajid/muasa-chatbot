@@ -866,11 +866,11 @@
         </div>
       </div>
 
-      <div class="muasa-checkout-section-title">Shipping & Contact Details</div>
+      <div class="muasa-checkout-section-title">Contact Information</div>
       <form id="muasa-order-form" class="muasa-checkout-form">
         <div class="muasa-form-field">
-          <label class="muasa-form-label" for="muasa-cust-name">Full Name *</label>
-          <input type="text" id="muasa-cust-name" class="muasa-form-input" placeholder="e.g. Muhammad Ali" required />
+          <label class="muasa-form-label" for="muasa-cust-email">Email Address *</label>
+          <input type="email" id="muasa-cust-email" class="muasa-form-input" placeholder="e.g. customer@gmail.com" required />
         </div>
 
         <div class="muasa-form-field">
@@ -878,26 +878,80 @@
           <input type="tel" id="muasa-cust-phone" class="muasa-form-input" placeholder="e.g. 0300 1234567" required />
         </div>
 
-        <div class="muasa-form-field">
-          <label class="muasa-form-label" for="muasa-cust-address">Delivery Address *</label>
-          <textarea id="muasa-cust-address" class="muasa-form-textarea" placeholder="House/Flat #, Street, Area..." required></textarea>
+        <div class="muasa-checkout-section-title" style="margin-top: 6px;">Delivery Address</div>
+        
+        <div class="muasa-form-row">
+          <div class="muasa-form-field">
+            <label class="muasa-form-label" for="muasa-cust-fname">First Name *</label>
+            <input type="text" id="muasa-cust-fname" class="muasa-form-input" placeholder="First Name" required />
+          </div>
+          <div class="muasa-form-field">
+            <label class="muasa-form-label" for="muasa-cust-lname">Last Name *</label>
+            <input type="text" id="muasa-cust-lname" class="muasa-form-input" placeholder="Last Name" required />
+          </div>
         </div>
 
         <div class="muasa-form-field">
-          <label class="muasa-form-label" for="muasa-cust-city">City *</label>
-          <input type="text" id="muasa-cust-city" class="muasa-form-input" placeholder="e.g. Lahore / Karachi / Islamabad" required />
+          <label class="muasa-form-label" for="muasa-cust-address1">Street Address (House/Building #) *</label>
+          <input type="text" id="muasa-cust-address1" class="muasa-form-input" placeholder="House #, Street name, Area" required />
         </div>
 
-        <div class="muasa-payment-badge">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2">
-            <rect x="2" y="5" width="20" height="14" rx="2"></rect>
-            <line x1="2" y1="10" x2="22" y2="10"></line>
-          </svg>
-          <span>Cash on Delivery (Pay when order arrives)</span>
+        <div class="muasa-form-field">
+          <label class="muasa-form-label" for="muasa-cust-address2">Apartment, Suite, Unit (Optional)</label>
+          <input type="text" id="muasa-cust-address2" class="muasa-form-input" placeholder="Apartment / Floor / Block (Optional)" />
+        </div>
+
+        <div class="muasa-form-row">
+          <div class="muasa-form-field">
+            <label class="muasa-form-label" for="muasa-cust-city">City *</label>
+            <input type="text" id="muasa-cust-city" class="muasa-form-input" placeholder="e.g. Lahore / Karachi" required />
+          </div>
+          <div class="muasa-form-field">
+            <label class="muasa-form-label" for="muasa-cust-zip">Postal / ZIP Code (Optional)</label>
+            <input type="text" id="muasa-cust-zip" class="muasa-form-input" placeholder="e.g. 54000" />
+          </div>
+        </div>
+
+        <div class="muasa-form-field">
+          <label class="muasa-form-label" for="muasa-cust-province">Province / State *</label>
+          <select id="muasa-cust-province" class="muasa-form-select" required>
+            <option value="" disabled selected>Select Province / Region</option>
+            <option value="Punjab">Punjab</option>
+            <option value="Sindh">Sindh</option>
+            <option value="Khyber Pakhtunkhwa">Khyber Pakhtunkhwa</option>
+            <option value="Islamabad Capital Territory">Islamabad Capital Territory</option>
+            <option value="Balochistan">Balochistan</option>
+            <option value="Azad Kashmir">Azad Kashmir</option>
+            <option value="Gilgit-Baltistan">Gilgit-Baltistan</option>
+            <option value="Other">Other / International</option>
+          </select>
+        </div>
+
+        <div class="muasa-form-field">
+          <label class="muasa-form-label" for="muasa-cust-notes">Order Notes / Delivery Instructions (Optional)</label>
+          <textarea id="muasa-cust-notes" class="muasa-form-textarea" placeholder="Any special instructions for courier (e.g. call before delivery)"></textarea>
+        </div>
+
+        <div class="muasa-checkout-section-title" style="margin-top: 6px;">Payment Method</div>
+        <div class="muasa-payment-cards">
+          <label class="muasa-payment-card active" id="muasa-pay-card-cod">
+            <input type="radio" name="muasa-payment-method" value="COD" checked />
+            <div class="muasa-payment-info">
+              <span class="muasa-payment-title">💵 Cash on Delivery (COD)</span>
+              <span class="muasa-payment-sub">Pay with cash when order is delivered to your door</span>
+            </div>
+          </label>
+          <label class="muasa-payment-card" id="muasa-pay-card-online">
+            <input type="radio" name="muasa-payment-method" value="ONLINE" />
+            <div class="muasa-payment-info">
+              <span class="muasa-payment-title">💳 Debit / Credit Card (Shopify Checkout)</span>
+              <span class="muasa-payment-sub">Pay securely online with Visa, Mastercard, or Bank</span>
+            </div>
+          </label>
         </div>
 
         <button type="submit" id="muasa-submit-order-btn" class="muasa-order-submit-btn">
-          ✓ Place Order (Cash on Delivery)
+          ✓ Complete Order (${config.currencySymbol} ${totalFormatted})
         </button>
 
         <a href="/checkout" class="muasa-shopify-direct-link" target="_blank" rel="noopener">
@@ -908,6 +962,20 @@
 
     document.getElementById('muasa-form-back-btn')?.addEventListener('click', closeInChatCheckout);
 
+    // Dynamic Radio Selection Highlighting
+    const codCard = document.getElementById('muasa-pay-card-cod');
+    const onlineCard = document.getElementById('muasa-pay-card-online');
+    if (codCard && onlineCard) {
+      codCard.addEventListener('click', () => {
+        codCard.classList.add('active');
+        onlineCard.classList.remove('active');
+      });
+      onlineCard.addEventListener('click', () => {
+        onlineCard.classList.add('active');
+        codCard.classList.remove('active');
+      });
+    }
+
     const form = document.getElementById('muasa-order-form');
     if (!form) return;
 
@@ -916,25 +984,36 @@
       const submitBtn = document.getElementById('muasa-submit-order-btn');
       if (submitBtn) {
         submitBtn.disabled = true;
-        submitBtn.textContent = 'Processing Order...';
+        submitBtn.textContent = 'Registering Order with Shopify...';
       }
 
-      const name = document.getElementById('muasa-cust-name')?.value?.trim() || '';
+      const email = document.getElementById('muasa-cust-email')?.value?.trim() || '';
       const phone = document.getElementById('muasa-cust-phone')?.value?.trim() || '';
-      const address = document.getElementById('muasa-cust-address')?.value?.trim() || '';
+      const firstName = document.getElementById('muasa-cust-fname')?.value?.trim() || '';
+      const lastName = document.getElementById('muasa-cust-lname')?.value?.trim() || '';
+      const address1 = document.getElementById('muasa-cust-address1')?.value?.trim() || '';
+      const address2 = document.getElementById('muasa-cust-address2')?.value?.trim() || '';
       const city = document.getElementById('muasa-cust-city')?.value?.trim() || '';
+      const province = document.getElementById('muasa-cust-province')?.value?.trim() || 'Punjab';
+      const zip = document.getElementById('muasa-cust-zip')?.value?.trim() || '';
+      const notes = document.getElementById('muasa-cust-notes')?.value?.trim() || '';
+      const paymentMethod = form.querySelector('input[name="muasa-payment-method"]:checked')?.value || 'COD';
 
       const orderRef = Math.floor(100000 + Math.random() * 900000);
 
-      // 1. Log order event to app backend
+      // 1. Log order lead event to app backend database
       trackEvent('order_placed', null, {
-        customerName: name,
+        customerName: `${firstName} ${lastName}`.trim(),
+        email: email,
         phone: phone,
-        address: address,
+        address: `${address1} ${address2}`.trim(),
         city: city,
+        province: province,
+        zip: zip,
+        paymentMethod: paymentMethod,
+        orderRef: String(orderRef),
         itemCount: cart.item_count,
         totalPrice: cart.total_price / 100,
-        orderRef: String(orderRef),
         items: (cart.items || []).map(i => ({
           title: i.title,
           quantity: i.quantity,
@@ -942,41 +1021,59 @@
         }))
       });
 
-      // 2. Clear cart
+      // 2. Attach complete customer details and COD order notes to Shopify Cart
       try {
-        await fetch('/cart/clear.js', { method: 'POST' });
-        document.dispatchEvent(new CustomEvent('cart:updated', { bubbles: true }));
-        try { localStorage.removeItem(STORAGE_CART_KEY); } catch (_) { void _; }
-      } catch (_) {
-        void _;
+        await fetch('/cart/update.js', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            note: `Order via Muasa AI Chatbot (${paymentMethod === 'COD' ? 'Cash on Delivery' : 'Online Payment'})\nCustomer: ${firstName} ${lastName}\nPhone: ${phone}\nEmail: ${email}\nAddress: ${address1}${address2 ? ', ' + address2 : ''}, ${city}, ${province} ${zip}\nInstructions: ${notes || 'None'}`,
+            attributes: {
+              'Order Source': 'Muasa AI Chatbot',
+              'Customer Name': `${firstName} ${lastName}`.trim(),
+              'Customer Phone': phone,
+              'Customer Email': email,
+              'Customer City': city,
+              'Payment Method': paymentMethod === 'COD' ? 'Cash on Delivery (COD)' : 'Online Card'
+            }
+          })
+        });
+      } catch (upErr) {
+        console.warn('[MuasaBot] Cart update error:', upErr);
       }
 
-      // 3. Render Order Confirmation
+      // 3. Construct Shopify checkout URL with all prefilled parameters
+      const checkoutParams = new URLSearchParams({
+        'checkout[email]': email,
+        'checkout[shipping_address][first_name]': firstName,
+        'checkout[shipping_address][last_name]': lastName,
+        'checkout[shipping_address][address1]': address1,
+        'checkout[shipping_address][address2]': address2 || '',
+        'checkout[shipping_address][city]': city,
+        'checkout[shipping_address][province]': province,
+        'checkout[shipping_address][zip]': zip || '',
+        'checkout[shipping_address][country]': 'Pakistan',
+        'checkout[shipping_address][phone]': phone
+      });
+
+      // Show instant confirmation and redirect to pre-filled Shopify checkout
       checkoutView.innerHTML = `
         <div class="muasa-order-success">
           <div class="muasa-success-icon">✓</div>
-          <div class="muasa-success-title">Order Confirmed! 🎉</div>
-          <div class="muasa-success-ref">Order Reference: #MB-${orderRef}</div>
+          <div class="muasa-success-title">Order Details Verified!</div>
+          <div class="muasa-success-ref">Registering Order in Shopify Admin...</div>
           <div class="muasa-success-body">
-            Thank you, <strong>${escapeHtml(name)}</strong>!<br/><br/>
-            Your order of <strong>${config.currencySymbol} ${totalFormatted}</strong> has been received for <strong>Cash on Delivery</strong>.<br/><br/>
-            Package will be dispatched to:<br/>
-            <strong>${escapeHtml(address)}, ${escapeHtml(city)}</strong><br/><br/>
-            Our team will contact you at <strong>${escapeHtml(phone)}</strong> to confirm dispatch.
+            Thank you, <strong>${escapeHtml(firstName)} ${escapeHtml(lastName)}</strong>!<br/><br/>
+            All your details and <strong>${paymentMethod === 'COD' ? 'Cash on Delivery' : 'Online Payment'}</strong> have been verified.<br/><br/>
+            Redirecting to Shopify Checkout to record your official order in the store...
           </div>
-          <button type="button" class="muasa-continue-shopping-btn" id="muasa-order-continue-btn">
-            Continue Shopping →
-          </button>
+          <div class="muasa-thinking-sparkle" style="font-size: 24px; color: #10b981; animation: muasaPulse 1.2s infinite; margin-top: 10px;">✦</div>
         </div>
       `;
 
-      document.getElementById('muasa-order-continue-btn')?.addEventListener('click', () => {
-        closeInChatCheckout();
-        appendMessage(
-          'ai',
-          `Order **#MB-${orderRef}** has been confirmed for **${escapeHtml(name)}**! Your package is being prepared. Is there any other product or question I can help you with?`
-        );
-      });
+      setTimeout(() => {
+        window.location.href = `/checkout?${checkoutParams.toString()}`;
+      }, 700);
     });
   }
 
