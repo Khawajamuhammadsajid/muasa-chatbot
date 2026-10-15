@@ -312,9 +312,9 @@ export async function processCustomerChat({
 
       const promptText = `Shopper: "${message}"\nPlease advise the shopper and return valid JSON.`;
       
-      // Fast timeout: abort attempt if model hangs longer than 1500ms
+      // Timeout: abort attempt if model hangs longer than 6000ms
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Model request timeout (1500ms exceeded)")), 1500)
+        setTimeout(() => reject(new Error("Model request timeout (6000ms exceeded)")), 6000)
       );
       const generatePromise = model.generateContent(promptText);
 
