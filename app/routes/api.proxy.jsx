@@ -1,8 +1,9 @@
 import { z } from "zod";
-import { authenticate } from "../shopify.server.js";
+import { authenticate, unauthenticated } from "../shopify.server.js";
 import { checkRateLimit } from "../lib/rateLimiter.js";
 import { processCustomerChat } from "../lib/aiEngine.js";
 import { getStoreCatalog } from "../services/catalogService.js";
+import { createChatOrder } from "../services/orderService.js";
 import {
   getOrCreateShop,
   getShopSettings,
@@ -167,6 +168,49 @@ export const action = async ({ request }) => {
       status: 200,
       headers: { "Content-Type": "application/json" }
     });
+  }
+
+  // Handle In-Chat Order Creation directly to Shopify Admin
+  if (body.action === "create_order") {
+    let admin = appProxyAuth.admin;
+    if (!admin) {
+      try {
+        const authResult = await unauthenticated.admin(shopDomain);
+        admin = authResult.admin;
+      } catch (authErr) {
+        console.warn("[AppProxy] Admin auth fallback error:", authErr.message);
+      }
+    }
+
+    try {
+      const orderResult = await createChatOrder(admin, body.customer || {}, body.items || []);
+      
+      const shop = await getOrCreateShop(shopDomain);
+      await logAnalyticsEvent(shop.id, "order_placed", null, {
+        orderNumber: orderResult.orderNumber,
+        customerName: `${body.customer?.firstName || ''} ${body.customer?.lastName || ''}`.trim(),
+        totalPrice: orderResult.totalPrice,
+        isOfficialOrder: orderResult.isOfficialOrder
+      });
+
+      return new Response(JSON.stringify({
+        ok: true,
+        orderNumber: orderResult.orderNumber,
+        isOfficialOrder: orderResult.isOfficialOrder,
+        totalPrice: orderResult.totalPrice
+      }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" }
+      });
+    } catch (orderErr) {
+      console.error("[AppProxy] In-chat order creation failed:", orderErr);
+      return new Response(JSON.stringify({
+        error: orderErr.message || "Failed to register order in store"
+      }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
   }
 
   // Handle Chat action

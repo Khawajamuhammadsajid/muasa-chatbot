@@ -954,9 +954,9 @@
           ✓ Complete Order (${config.currencySymbol} ${totalFormatted})
         </button>
 
-        <a href="/checkout" class="muasa-shopify-direct-link" target="_blank" rel="noopener">
-          Or proceed to standard Shopify Checkout ↗
-        </a>
+        <div style="text-align: center; font-size: 11px; color: #71717a; margin-top: 6px;">
+          🔒 100% Secure In-Chat Checkout • Cash on Delivery
+        </div>
       </form>
     `;
 
@@ -984,7 +984,7 @@
       const submitBtn = document.getElementById('muasa-submit-order-btn');
       if (submitBtn) {
         submitBtn.disabled = true;
-        submitBtn.textContent = 'Registering Order with Shopify...';
+        submitBtn.textContent = 'Placing Order Directly with Store...';
       }
 
       const email = document.getElementById('muasa-cust-email')?.value?.trim() || '';
@@ -999,81 +999,85 @@
       const notes = document.getElementById('muasa-cust-notes')?.value?.trim() || '';
       const paymentMethod = form.querySelector('input[name="muasa-payment-method"]:checked')?.value || 'COD';
 
-      const orderRef = Math.floor(100000 + Math.random() * 900000);
+      const items = (cart.items || []).map(i => ({
+        variantId: i.variant_id || i.id,
+        quantity: i.quantity,
+        title: i.title,
+        price: i.price
+      }));
 
-      // 1. Log order lead event to app backend database
-      trackEvent('order_placed', null, {
-        customerName: `${firstName} ${lastName}`.trim(),
-        email: email,
-        phone: phone,
-        address: `${address1} ${address2}`.trim(),
-        city: city,
-        province: province,
-        zip: zip,
-        paymentMethod: paymentMethod,
-        orderRef: String(orderRef),
-        itemCount: cart.item_count,
-        totalPrice: cart.total_price / 100,
-        items: (cart.items || []).map(i => ({
-          title: i.title,
-          quantity: i.quantity,
-          price: i.price / 100
-        }))
-      });
+      // In-Chat Direct Checkout - Create Official Order in Shopify via App Proxy
+      const proxyEndpoint = `${config.proxyUrl || '/apps/muasa-bot'}`;
+      let orderNumber = '';
 
-      // 2. Attach complete customer details and COD order notes to Shopify Cart
       try {
-        await fetch('/cart/update.js', {
+        const orderRes = await fetch(proxyEndpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            note: `Order via Muasa AI Chatbot (${paymentMethod === 'COD' ? 'Cash on Delivery' : 'Online Payment'})\nCustomer: ${firstName} ${lastName}\nPhone: ${phone}\nEmail: ${email}\nAddress: ${address1}${address2 ? ', ' + address2 : ''}, ${city}, ${province} ${zip}\nInstructions: ${notes || 'None'}`,
-            attributes: {
-              'Order Source': 'Muasa AI Chatbot',
-              'Customer Name': `${firstName} ${lastName}`.trim(),
-              'Customer Phone': phone,
-              'Customer Email': email,
-              'Customer City': city,
-              'Payment Method': paymentMethod === 'COD' ? 'Cash on Delivery (COD)' : 'Online Card'
-            }
+            action: 'create_order',
+            customer: {
+              email,
+              phone,
+              firstName,
+              lastName,
+              address1,
+              address2,
+              city,
+              province,
+              zip,
+              notes,
+              paymentMethod
+            },
+            items: items
           })
         });
-      } catch (upErr) {
-        console.warn('[MuasaBot] Cart update error:', upErr);
+
+        const orderData = await orderRes.json();
+        if (orderRes.ok && orderData.ok) {
+          orderNumber = orderData.orderNumber || ('#' + Math.floor(100000 + Math.random() * 900000));
+        } else {
+          throw new Error(orderData.error || 'Store was unable to process order.');
+        }
+      } catch (err) {
+        console.error('[MuasaBot] Direct order creation failed:', err);
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = `✓ Complete Order (${config.currencySymbol} ${totalFormatted})`;
+        }
+        alert('Could not complete order: ' + (err.message || 'Please verify your details and try again.'));
+        return;
       }
 
-      // 3. Construct Shopify checkout URL with all prefilled parameters
-      const checkoutParams = new URLSearchParams({
-        'checkout[email]': email,
-        'checkout[shipping_address][first_name]': firstName,
-        'checkout[shipping_address][last_name]': lastName,
-        'checkout[shipping_address][address1]': address1,
-        'checkout[shipping_address][address2]': address2 || '',
-        'checkout[shipping_address][city]': city,
-        'checkout[shipping_address][province]': province,
-        'checkout[shipping_address][zip]': zip || '',
-        'checkout[shipping_address][country]': 'Pakistan',
-        'checkout[shipping_address][phone]': phone
-      });
+      // Clear customer's Shopify store cart since order is placed
+      try {
+        await fetch('/cart/clear.js', { method: 'POST' });
+      } catch (_) {}
 
-      // Show instant confirmation and redirect to pre-filled Shopify checkout
+      // Play soft chime
+      playSoftChime();
+
+      // Show in-chat celebration screen - NO redirect to /checkout!
       checkoutView.innerHTML = `
         <div class="muasa-order-success">
           <div class="muasa-success-icon">✓</div>
-          <div class="muasa-success-title">Order Details Verified!</div>
-          <div class="muasa-success-ref">Registering Order in Shopify Admin...</div>
+          <div class="muasa-success-title">Order Confirmed! 🎉</div>
+          <div class="muasa-success-ref">Order ${escapeHtml(orderNumber)}</div>
           <div class="muasa-success-body">
             Thank you, <strong>${escapeHtml(firstName)} ${escapeHtml(lastName)}</strong>!<br/><br/>
-            All your details and <strong>${paymentMethod === 'COD' ? 'Cash on Delivery' : 'Online Payment'}</strong> have been verified.<br/><br/>
-            Redirecting to Shopify Checkout to record your official order in the store...
+            Your order has been officially registered in the store with <strong>${paymentMethod === 'COD' ? '💵 Cash on Delivery' : '💳 Online Payment'}</strong>.<br/><br/>
+            <strong>Delivery Address:</strong><br/>
+            ${escapeHtml(address1)}${address2 ? ', ' + escapeHtml(address2) : ''}<br/>
+            ${escapeHtml(city)}, ${escapeHtml(province)} ${escapeHtml(zip)}<br/><br/>
+            Our courier will dispatch your parcel shortly. We will contact you at <strong>${escapeHtml(phone)}</strong> before delivery.
           </div>
-          <div class="muasa-thinking-sparkle" style="font-size: 24px; color: #10b981; animation: muasaPulse 1.2s infinite; margin-top: 10px;">✦</div>
+          <button type="button" class="muasa-continue-shopping-btn" id="muasa-order-done-btn" style="margin-top: 14px; width: 100%;">
+            ← Continue Shopping / Back to Chat
+          </button>
         </div>
       `;
 
-      setTimeout(() => {
-        window.location.href = `/checkout?${checkoutParams.toString()}`;
-      }, 700);
+      document.getElementById('muasa-order-done-btn')?.addEventListener('click', closeInChatCheckout);
     });
   }
 
