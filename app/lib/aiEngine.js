@@ -75,19 +75,20 @@ export function buildCustomerSupportPrompt(storeContext, catalog = [], conversat
     historySection = `\nRECENT CONVERSATION HISTORY:\n${formattedHistory}\n`;
   }
 
-  return `You are the expert, courteous Customer Support & Personal Beauty/Shopping Concierge for "${shopName}".
-Your mission is to guide customers, address skin/hair/body concerns, recommend products, and answer policy questions with warmth, empathy, and accuracy.
+  return `You are the expert, courteous Customer Support & Shopping Concierge for "${shopName}".
+Your mission is to assist shoppers, answer product and store policy questions, recommend the right items from the store catalog, and provide clear, helpful advice tailored strictly to the products this store sells.
 
 CRITICAL OPERATING RULES:
-1. IDENTITY & PERSONA:
-   - Act as dedicated store customer care. Polite, consultative, helpful, and concise.
-   - Use bold markdown (**bold**) for key product titles, primary ingredients, instructions, and core benefits.
-   - If the shopper shares a concern (e.g. hair fall, dry skin, acne, uneven tone, budget), recommend the exact relevant product from the catalog and explain WHY it helps.
+1. IDENTITY & STORE DOMAIN ADAPTATION:
+   - Act as dedicated store customer care. Polite, knowledgeable, consultative, and concise.
+   - Ground all product knowledge strictly in the actual store products, categories, and descriptions provided below.
+   - NEVER assume the store only sells skincare or beauty. If the store sells autoparts, apparel, sports/outdoor gear (e.g. ski wax), electronics, or accessories, tailor your terminology, tone, and guidance strictly to that product category.
+   - Use bold markdown (**bold**) for key product titles, specifications, materials, and core benefits.
 
 2. LANGUAGE:
    - Match the shopper's language fluently.
    - If English: Respond in polished, warm English.
-   - If Roman Urdu / Hindi (e.g. "kya hai", "kitne ka hai", "deliver kab hoga", "skin dry hai", "acne ke liye kuch batao"): Respond in natural, polite Roman Urdu.
+   - If Roman Urdu / Hindi (e.g. "kya hai", "kitne ka hai", "deliver kab hoga", "kuch batao"): Respond in natural, polite Roman Urdu.
 
 3. CATALOG ACCURACY:
    - Recommend products ONLY from the store catalog below.
@@ -103,15 +104,19 @@ CRITICAL OPERATING RULES:
 5. DIRECT, TO-THE-POINT REPLIES (NO REPETITIVE GREETINGS):
    - Get straight to the point! Be direct, helpful, and consultative without unnecessary filler.
    - If there is RECENT CONVERSATION HISTORY above, STRICTLY DO NOT say "Hello", "Hi", "Hello again", "Assalam-o-Alaikum", "Aoa", or "Welcome".
-   - Answer the question immediately (e.g. explain the product, answer delivery time, or give advice right away).
+   - Answer the question immediately.
 
-6. PRODUCT DETAILS & SKIN ADVISORY (MANDATORY):
-   - Whenever the shopper searches for or asks about ANY product (e.g. sunscreen, moisturiser, cleanser, acne, glow, best sellers):
-     1. ALWAYS provide the product's details FIRST in your reply text before recommending:
-        - 🌿 **Best For Skin / Skin Type:** (e.g. daily SPF 60 defense, anti-acne, intense hydration, glowing skin, sensitive skin).
-        - 🧪 **Key Ingredients & Formula:** (Highlight the active ingredients and formulation from the catalog details, e.g. Zinc Oxide, Niacinamide, Hyaluronic Acid, Aloe Vera, Salicylic Acid).
-        - 💡 **Key Benefits:** (Explain clearly how it benefits their skin).
-     2. Keep it structured, engaging, and clear so the customer learns about the product's ingredients and skin benefits right before the product cards.
+6. DYNAMIC & RELEVANT PRODUCT DETAILS (MANDATORY):
+   - Whenever the shopper searches for or asks about ANY product or collection:
+     1. ALWAYS provide relevant product details FIRST in your reply text before the product cards:
+        - Accurately describe the product based on its ACTUAL CATEGORY and catalog details:
+          * For Skincare/Cosmetics: Mention skin type suitability, active ingredients, and skin benefits.
+          * For Sports/Outdoor/Wax (e.g. Ski Wax): Mention gear type, snow/temperature conditions, glide performance, and base protection.
+          * For Auto Parts/Hardware: Mention vehicle fitment, build material, performance, and durability.
+          * For Apparel/Fashion: Mention fabric/material, fit, style, and occasions.
+          * For General items: Mention core purpose, key specifications, and main benefits.
+        - NEVER label a non-skincare product as "Best for skin" or "dermatological"!
+     2. Keep it structured, informative, and engaging.
 
 AVAILABLE STORE PRODUCTS:
 ${productSnippets || "Catalog currently updating."}
@@ -266,18 +271,54 @@ export async function processCustomerChat({
     const topTitle = topProduct?.title || "our product";
     const isUrdu = /kya|hai|chahiye|mujhe|batao|karo|kitne|salam|aoa/i.test(trimmed);
 
+    // Dynamic Category & Domain Detection from Product Title, Type, Tags & Description
+    const combinedInfo = `${topProduct?.title || ""} ${topProduct?.productType || ""} ${(topProduct?.tags || []).join(" ")} ${topProduct?.description || ""}`.toLowerCase();
+
+    const isSkincare = /skin|serum|cream|lotion|cleanser|moisturi[sz]er|sunscreen|spf|toner|acne|face|glow|dermatolog/i.test(combinedInfo);
+    const isSportsOutdoor = /wax|ski|snowboard|outdoor|sport|board|glid|winter|skat|surf|hiking|bike|racket/i.test(combinedInfo);
+    const isAuto = /auto|car|engine|brake|part|motor|vehicle|filter|oil|tyre|tire|exhaust|bumper/i.test(combinedInfo);
+    const isApparel = /shirt|pant|hoodie|jacket|dress|trouser|wear|cotton|fabric|cloth|tee|denim/i.test(combinedInfo);
+
     const rawDesc = (topProduct?.description || "")
       .replace(/<[^>]*>/g, " ")
       .replace(/\s+/g, " ")
       .trim();
 
-    const descSnippet = rawDesc.length > 220 ? rawDesc.substring(0, 217) + "..." : (rawDesc || "Formulated with premium dermatological ingredients for visible results.");
+    let benefitLabel = "Best For / Use Case";
+    let detailsLabel = "Key Details & Features";
+    let defaultBenefitEn = "Engineered for high quality, performance, and everyday reliability.";
+    let defaultBenefitUr = "High quality aur rozana ke behtareen istemaal ke liye tayyar kiya gaya hai.";
+    let defaultDetails = rawDesc || "Authentic high-grade item sourced directly from verified store catalog.";
+
+    if (isSkincare) {
+      benefitLabel = "Best For Skin";
+      detailsLabel = "Key Ingredients & Formula";
+      defaultBenefitEn = "Formulated for daily skin nourishment, hydration, and visible radiance.";
+      defaultBenefitUr = "Rozana skin nourishment, hydration aur healthy glow ke liye behtareen hai.";
+    } else if (isSportsOutdoor) {
+      benefitLabel = "Best For / Application";
+      detailsLabel = "Performance & Specifications";
+      defaultBenefitEn = "Optimized for maximum speed, smooth glide, and base protection in varying conditions.";
+      defaultBenefitUr = "Smooth glide, surface protection aur behtareen performance ke liye design kiya gaya hai.";
+    } else if (isAuto) {
+      benefitLabel = "Compatibility & Fitment";
+      detailsLabel = "Specifications & Durability";
+      defaultBenefitEn = "Precision-engineered for reliable vehicle fitment, durability, and heavy-duty performance.";
+      defaultBenefitUr = "Gari ke perfect fitment, mazbooti aur heavy-duty performance ke liye behtareen hai.";
+    } else if (isApparel) {
+      benefitLabel = "Style & Fit";
+      detailsLabel = "Fabric & Material";
+      defaultBenefitEn = "Crafted with premium comfortable fabric for modern style and all-day comfort.";
+      defaultBenefitUr = "Aala quality fabric aur stylish fitting ke saath rozana pehn-nay ke liye comfortable hai.";
+    }
+
+    const descSnippet = rawDesc.length > 220 ? rawDesc.substring(0, 217) + "..." : (rawDesc || defaultDetails);
     const currencyStr = mergedContext.currencySymbol || "Rs.";
     const priceStr = topProduct?.price ? `${currencyStr} ${topProduct.price}` : "In Stock";
 
     const reply = isUrdu
-      ? `Yeh rahi **${topTitle}** ki mukammal details:\n\n🌿 **Best For Skin:** Rozana skin nourishment aur healthy glow ke liye behtareen hai. Har qisam ki skin ke liye gentle aur safe hai.\n🧪 **Key Ingredients & Formula:** ${descSnippet}\n💰 **Price:** ${priceStr} | Cash on Delivery (COD) poore Pakistan me available hai.\n\nKya aap isko apne cart mein add karna chahtay hain?`
-      : `Here are the details for **${topTitle}**:\n\n🌿 **Best For Skin:** Specially formulated for daily protection, deep hydration, and visible radiance. Suitable for all skin types.\n🧪 **Key Ingredients & Formula:** ${descSnippet}\n💰 **Price:** ${priceStr} | Cash on Delivery Available.\n\nWould you like to add it to your cart or explore matching routine products?`;
+      ? `Yeh rahi **${topTitle}** ki mukammal details:\n\n🌟 **${benefitLabel}:** ${defaultBenefitUr}\n📋 **${detailsLabel}:** ${descSnippet}\n💰 **Price:** ${priceStr} | Cash on Delivery (COD) available.\n\nKya aap isko apne cart mein add karna chahtay hain?`
+      : `Here are the details for **${topTitle}**:\n\n🌟 **${benefitLabel}:** ${defaultBenefitEn}\n📋 **${detailsLabel}:** ${descSnippet}\n💰 **Price:** ${priceStr} | Cash on Delivery Available.\n\nWould you like to add it to your cart or explore more options from our store?`;
 
     return {
       heading: topTitle,
