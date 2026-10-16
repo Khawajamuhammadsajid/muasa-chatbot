@@ -186,6 +186,14 @@ export async function createChatOrder(admin, customer = {}, items = []) {
 
   if (draftData?.userErrors && draftData.userErrors.length > 0) {
     console.error("[OrderService] User errors on draftOrderCreate:", draftData.userErrors);
+    const pcdError = draftData.userErrors.find((e) =>
+      /protected-customer-data|DraftOrder/i.test(e.message || "")
+    );
+    if (pcdError) {
+      throw new Error(
+        "Shopify Partner Dashboard me 'API access' -> 'Protected customer data' enable karein taake app order create kar sake."
+      );
+    }
     throw new Error(draftData.userErrors[0]?.message || "Failed to create draft order");
   }
 
