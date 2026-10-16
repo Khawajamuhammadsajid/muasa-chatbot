@@ -1,6 +1,7 @@
 import { useLoaderData } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server.js";
+import prisma from "../db.server.js";
 import { getOrCreateShop } from "../services/shopService.js";
 import { getStoreCatalog } from "../services/catalogService.js";
 import { getAiHealthStatus } from "../lib/aiEngine.js";
@@ -18,11 +19,37 @@ export const loader = async ({ request }) => {
   const cleanShop = shopDomain.replace(".myshopify.com", "");
   const themeEditorUrl = `https://admin.shopify.com/store/${cleanShop}/themes/current/editor?context=apps`;
 
+  const recentOrdersRaw = await prisma.analytics.findMany({
+    where: {
+      shopId: shop.id,
+      eventType: "order_placed"
+    },
+    orderBy: { createdAt: "desc" },
+    take: 10
+  });
+
+  const recentOrders = recentOrdersRaw.map((o) => {
+    let meta = {};
+    try { meta = JSON.parse(o.metadata || "{}"); } catch (_) {}
+    return {
+      id: o.id,
+      createdAt: o.createdAt,
+      orderNumber: meta.orderNumber || "#MB-Order",
+      customerName: meta.customerName || "Customer",
+      phone: meta.phone || "—",
+      address: meta.address || "—",
+      totalPrice: meta.totalPrice || "0.00",
+      paymentMethod: meta.paymentMethod || "COD",
+      isOfficialOrder: meta.isOfficialOrder
+    };
+  });
+
   return {
     shopName: catalogData.shopInfo?.name || shopDomain,
     currency: catalogData.shopInfo?.currency || "PKR",
     productCount: catalogData.products?.length || 0,
     sampleProducts: (catalogData.products || []).slice(0, 5),
+    recentOrders,
     quota,
     settings: shop.settings,
     themeEditorUrl,
@@ -36,6 +63,7 @@ export default function Dashboard() {
     currency,
     productCount,
     sampleProducts,
+    recentOrders = [],
     quota,
     settings,
     themeEditorUrl,
@@ -92,6 +120,23 @@ export default function Dashboard() {
         <s-paragraph>
           Current Plan: <strong>{quota.plan}</strong> | Messages used this cycle: <strong>{quota.usage} / {quota.limit}</strong> ({quota.remaining} remaining).
         </s-paragraph>
+      </s-section>
+
+      {/* In-Chat Received Orders */}
+      <s-section heading={`In-Chat Orders (${recentOrders?.length || 0} Recent)`}>
+        {recentOrders && recentOrders.length > 0 ? (
+          <s-list>
+            {recentOrders.map((ord) => (
+              <s-list-item key={ord.id}>
+                <strong>{ord.orderNumber}</strong> — {ord.customerName} ({ord.phone}) | <strong>{ord.paymentMethod}</strong> | Total: {currency} {ord.totalPrice} | Address: {ord.address} | Status: {ord.isOfficialOrder ? "Shopify Admin Order" : "In-Chat Received"}
+              </s-list-item>
+            ))}
+          </s-list>
+        ) : (
+          <s-paragraph>
+            No in-chat orders placed yet. When a shopper completes checkout via Muasa Chatbot, their order details will appear right here!
+          </s-paragraph>
+        )}
       </s-section>
 
       {/* Live Catalog Preview */}
