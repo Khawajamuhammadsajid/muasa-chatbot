@@ -1,0 +1,572 @@
+/* ============================================================================
+   Muasa Bot - Enterprise Shopify Admin Stylesheet (Polaris Design System Standard)
+   Crafted for $100k+ Production Stores | Modern, Sleek, Responsive
+   ============================================================================ */
+
+:root {
+  --p-color-bg: #f6f6f7;
+  --p-color-surface: #ffffff;
+  --p-color-surface-hover: #fafbfb;
+  --p-color-border: #e1e3e5;
+  --p-color-border-subtle: #ebebeb;
+  --p-color-text: #202223;
+  --p-color-text-subdued: #6d7175;
+  --p-color-interactive: #005bd3;
+  --p-color-interactive-hover: #004299;
+  --p-color-success: #108043;
+  --p-color-success-bg: #e3f1df;
+  --p-color-warning: #b95000;
+  --p-color-warning-bg: #fff5ea;
+  --p-color-critical: #d72c0d;
+  --p-color-critical-bg: #ffd8d8;
+  --p-shadow-card: 0 1px 0 rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.03);
+  --p-shadow-elevated: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --p-radius-sm: 6px;
+  --p-radius-md: 10px;
+  --p-radius-lg: 14px;
+}
+
+/* Base App Page Styling */
+.muasa-admin-container {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 24px 20px 48px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif;
+  color: var(--p-color-text);
+  line-height: 1.5;
+}
+
+/* Page Header */
+.muasa-admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--p-color-border);
+}
+
+.muasa-admin-title {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: var(--p-color-text);
+  margin: 0 0 4px 0;
+}
+
+.muasa-admin-subtitle {
+  font-size: 13.5px;
+  color: var(--p-color-text-subdued);
+  margin: 0;
+}
+
+/* Actions Header */
+.muasa-admin-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.muasa-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--p-color-interactive);
+  color: #ffffff !important;
+  font-weight: 600;
+  font-size: 13.5px;
+  padding: 9px 18px;
+  border-radius: var(--p-radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s ease, transform 0.1s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.muasa-btn-primary:hover {
+  background: var(--p-color-interactive-hover);
+}
+
+.muasa-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  color: var(--p-color-text) !important;
+  font-weight: 600;
+  font-size: 13.5px;
+  padding: 9px 16px;
+  border-radius: var(--p-radius-sm);
+  border: 1px solid var(--p-color-border);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.muasa-btn-secondary:hover {
+  background: var(--p-color-surface-hover);
+  border-color: #c9cccf;
+}
+
+/* Production Status Banner */
+.muasa-status-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #ffffff;
+  border: 1px solid var(--p-color-border);
+  border-left: 4px solid var(--p-color-success);
+  border-radius: var(--p-radius-md);
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  box-shadow: var(--p-shadow-card);
+}
+
+.muasa-status-banner.warning {
+  border-left-color: var(--p-color-warning);
+}
+
+.muasa-status-banner.error {
+  border-left-color: var(--p-color-critical);
+}
+
+.muasa-status-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.muasa-status-pulse {
+  position: relative;
+  width: 12px;
+  height: 12px;
+  background: #108043;
+  border-radius: 50%;
+}
+
+.muasa-status-pulse::after {
+  content: "";
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  width: 20px;
+  height: 20px;
+  background: rgba(16, 128, 67, 0.25);
+  border-radius: 50%;
+  animation: muasaPulse 2s infinite ease-out;
+}
+
+@keyframes muasaPulse {
+  0% { transform: scale(0.6); opacity: 1; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+
+.muasa-status-title {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--p-color-text);
+  margin-bottom: 2px;
+}
+
+.muasa-status-desc {
+  font-size: 12.5px;
+  color: var(--p-color-text-subdued);
+  margin: 0;
+}
+
+.muasa-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 12px;
+  background: var(--p-color-success-bg);
+  color: var(--p-color-success);
+  border: 1px solid rgba(16, 128, 67, 0.2);
+}
+
+.muasa-badge.info {
+  background: #ebf5fa;
+  color: #005bd3;
+  border-color: rgba(0, 91, 211, 0.2);
+}
+
+.muasa-badge.neutral {
+  background: #f1f2f3;
+  color: #6d7175;
+  border-color: #e1e3e5;
+}
+
+/* KPI Overview Grid */
+.muasa-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.muasa-kpi-card {
+  background: var(--p-color-surface);
+  border: 1px solid var(--p-color-border);
+  border-radius: var(--p-radius-md);
+  padding: 20px;
+  box-shadow: var(--p-shadow-card);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.muasa-kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--p-shadow-elevated);
+}
+
+.muasa-kpi-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--p-color-text-subdued);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.muasa-kpi-value {
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--p-color-text);
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+}
+
+.muasa-kpi-footer {
+  font-size: 12px;
+  color: var(--p-color-text-subdued);
+  margin-top: 8px;
+}
+
+/* Enterprise Admin Cards */
+.muasa-card {
+  background: var(--p-color-surface);
+  border: 1px solid var(--p-color-border);
+  border-radius: var(--p-radius-md);
+  margin-bottom: 24px;
+  box-shadow: var(--p-shadow-card);
+  overflow: hidden;
+}
+
+.muasa-card-header {
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--p-color-border-subtle);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #ffffff;
+}
+
+.muasa-card-header h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--p-color-text);
+}
+
+.muasa-card-body {
+  padding: 22px;
+}
+
+/* Split Layout with Live Simulator */
+.muasa-two-column {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 990px) {
+  .muasa-two-column {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Form Controls (Polaris Standard) */
+.muasa-form-group {
+  margin-bottom: 20px;
+}
+
+.muasa-form-label {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--p-color-text);
+  margin-bottom: 6px;
+}
+
+.muasa-form-help {
+  font-size: 12.5px;
+  color: var(--p-color-text-subdued);
+  margin-top: 5px;
+  line-height: 1.4;
+}
+
+.muasa-input-text,
+.muasa-select,
+.muasa-textarea {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--p-color-text);
+  background: #ffffff;
+  border: 1px solid #c9cccf;
+  border-radius: var(--p-radius-sm);
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.muasa-input-text:focus,
+.muasa-select:focus,
+.muasa-textarea:focus {
+  border-color: var(--p-color-interactive);
+  box-shadow: 0 0 0 2px rgba(0, 91, 211, 0.2);
+}
+
+.muasa-color-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.muasa-color-swatch {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--p-radius-sm);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+  flex-shrink: 0;
+}
+
+/* Modern Toggle Switch */
+.muasa-toggle-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: #fafbfb;
+  border: 1px solid var(--p-color-border);
+  border-radius: var(--p-radius-sm);
+  cursor: pointer;
+}
+
+.muasa-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.muasa-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.muasa-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #c9cccf;
+  transition: 0.2s;
+  border-radius: 24px;
+}
+
+.muasa-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.2s;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.muasa-switch input:checked + .muasa-slider {
+  background-color: var(--p-color-success);
+}
+
+.muasa-switch input:checked + .muasa-slider:before {
+  transform: translateX(20px);
+}
+
+/* Live Storefront Preview Simulator Frame */
+.muasa-simulator-frame {
+  background: #18181b;
+  border: 6px solid #27272a;
+  border-radius: 28px;
+  box-shadow: var(--p-shadow-elevated), 0 20px 40px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  height: 520px;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 24px;
+}
+
+.muasa-sim-topbar {
+  background: #09090b;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #71717a;
+  font-size: 11px;
+}
+
+.muasa-sim-notch {
+  width: 60px;
+  height: 4px;
+  background: #27272a;
+  border-radius: 4px;
+}
+
+.muasa-sim-header {
+  padding: 14px 16px;
+  background: #1e1e1e;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.muasa-sim-body {
+  flex: 1;
+  padding: 16px;
+  background: #18181b;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.muasa-sim-bubble {
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  max-width: 85%;
+}
+
+.muasa-sim-bubble.ai {
+  background: #27272a;
+  color: #f4f4f5;
+  border: 1px solid #38383c;
+  align-self: flex-start;
+  border-bottom-left-radius: 4px;
+}
+
+.muasa-sim-product-card {
+  background: #27272a;
+  border: 1px solid #38383c;
+  border-radius: 12px;
+  padding: 10px;
+  display: flex;
+  gap: 10px;
+  align-self: flex-start;
+  width: calc(100% - 20px);
+}
+
+.muasa-sim-product-img {
+  width: 50px;
+  height: 50px;
+  border-radius: 6px;
+  background: #3f3f46;
+  object-fit: cover;
+}
+
+.muasa-sim-product-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.muasa-sim-product-title {
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.muasa-sim-product-price {
+  color: #10b981;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+.muasa-sim-input {
+  padding: 12px;
+  background: #1e1e1e;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  gap: 8px;
+}
+
+.muasa-sim-input-box {
+  flex: 1;
+  background: #27272a;
+  border-radius: 20px;
+  padding: 8px 14px;
+  font-size: 11.5px;
+  color: #71717a;
+  border: 1px solid #38383c;
+}
+
+/* Modern Data Table */
+.muasa-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.muasa-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13.5px;
+}
+
+.muasa-table th {
+  padding: 12px 16px;
+  background: #fafbfb;
+  color: var(--p-color-text-subdued);
+  font-weight: 600;
+  border-bottom: 1px solid var(--p-color-border);
+  white-space: nowrap;
+}
+
+.muasa-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--p-color-border-subtle);
+  color: var(--p-color-text);
+  vertical-align: middle;
+}
+
+.muasa-table tr:hover td {
+  background: var(--p-color-surface-hover);
+}
+
+.muasa-table tr:last-child td {
+  border-bottom: none;
+}

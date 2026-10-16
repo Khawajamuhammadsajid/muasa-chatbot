@@ -246,13 +246,13 @@
 
       let collections = data.collections || [];
 
-      // Fallback collections if none exist in dev store
+      // Universal fallback collections if store has not created custom collections yet
       if (collections.length === 0) {
         collections = [
-          { title: 'Best Sellers', handle: 'best-sellers', image: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=200&auto=format&fit=crop&q=60' },
-          { title: 'Cleansers', handle: 'cleansers', image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=200&auto=format&fit=crop&q=60' },
-          { title: 'Moisturizers', handle: 'moisturizers', image: 'https://images.unsplash.com/photo-1608248597359-597525dfc4a1?w=200&auto=format&fit=crop&q=60' },
-          { title: 'Serums', handle: 'serums', image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=200&auto=format&fit=crop&q=60' }
+          { title: 'Best Sellers', handle: 'best-sellers', image: 'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=300&auto=format&fit=crop&q=80' },
+          { title: 'New Arrivals', handle: 'new-arrivals', image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=300&auto=format&fit=crop&q=80' },
+          { title: 'Featured Items', handle: 'featured', image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&auto=format&fit=crop&q=80' },
+          { title: 'Trending Now', handle: 'trending', image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&auto=format&fit=crop&q=80' }
         ];
       }
 
@@ -264,10 +264,10 @@
         if (displayTitle.toLowerCase().includes('automated')) displayTitle = 'Best Sellers';
 
         const fallbackImages = [
-          'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=300&auto=format&fit=crop&q=80',
-          'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=300&auto=format&fit=crop&q=80',
-          'https://images.unsplash.com/photo-1608248597359-597525dfc4a1?w=300&auto=format&fit=crop&q=80',
-          'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=300&auto=format&fit=crop&q=80'
+          'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=300&auto=format&fit=crop&q=80',
+          'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=300&auto=format&fit=crop&q=80',
+          'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&auto=format&fit=crop&q=80',
+          'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&auto=format&fit=crop&q=80'
         ];
         const defaultImg = fallbackImages[idx % fallbackImages.length];
         const imgUrl = (col.image && !col.image.includes('placeholder')) ? col.image : defaultImg;
@@ -845,6 +845,25 @@
       `;
     });
 
+    const isPakistan = (config.currency || '').toUpperCase() === 'PKR';
+    const phonePlaceholder = isPakistan ? 'e.g. 0300 1234567' : 'e.g. +1 (555) 000-0000';
+    const cityPlaceholder = isPakistan ? 'e.g. Lahore / Karachi / Islamabad' : 'e.g. New York / London / Toronto';
+    const provinceFieldHtml = isPakistan ? `
+      <select id="muasa-cust-province" class="muasa-form-select" required>
+        <option value="" disabled selected>Select Province / Region</option>
+        <option value="Punjab">Punjab</option>
+        <option value="Sindh">Sindh</option>
+        <option value="Khyber Pakhtunkhwa">Khyber Pakhtunkhwa</option>
+        <option value="Islamabad Capital Territory">Islamabad Capital Territory</option>
+        <option value="Balochistan">Balochistan</option>
+        <option value="Azad Kashmir">Azad Kashmir</option>
+        <option value="Gilgit-Baltistan">Gilgit-Baltistan</option>
+        <option value="Other">Other / International</option>
+      </select>
+    ` : `
+      <input type="text" id="muasa-cust-province" class="muasa-form-input" placeholder="State / Province / Region" required />
+    `;
+
     checkoutView.innerHTML = `
       <div class="muasa-checkout-header">
         <span class="muasa-checkout-header-title">Quick Checkout 🛒</span>
@@ -880,7 +899,7 @@
 
         <div class="muasa-form-field">
           <label class="muasa-form-label" for="muasa-cust-phone">Phone / WhatsApp Number *</label>
-          <input type="tel" id="muasa-cust-phone" class="muasa-form-input" placeholder="e.g. 0300 1234567" required />
+          <input type="tel" id="muasa-cust-phone" class="muasa-form-input" placeholder="${phonePlaceholder}" required />
         </div>
 
         <div class="muasa-checkout-section-title" style="margin-top: 6px;">Delivery Address</div>
@@ -909,7 +928,7 @@
         <div class="muasa-form-row">
           <div class="muasa-form-field">
             <label class="muasa-form-label" for="muasa-cust-city">City *</label>
-            <input type="text" id="muasa-cust-city" class="muasa-form-input" placeholder="e.g. Lahore / Karachi" required />
+            <input type="text" id="muasa-cust-city" class="muasa-form-input" placeholder="${cityPlaceholder}" required />
           </div>
           <div class="muasa-form-field">
             <label class="muasa-form-label" for="muasa-cust-zip">Postal / ZIP Code (Optional)</label>
@@ -919,17 +938,7 @@
 
         <div class="muasa-form-field">
           <label class="muasa-form-label" for="muasa-cust-province">Province / State *</label>
-          <select id="muasa-cust-province" class="muasa-form-select" required>
-            <option value="" disabled selected>Select Province / Region</option>
-            <option value="Punjab">Punjab</option>
-            <option value="Sindh">Sindh</option>
-            <option value="Khyber Pakhtunkhwa">Khyber Pakhtunkhwa</option>
-            <option value="Islamabad Capital Territory">Islamabad Capital Territory</option>
-            <option value="Balochistan">Balochistan</option>
-            <option value="Azad Kashmir">Azad Kashmir</option>
-            <option value="Gilgit-Baltistan">Gilgit-Baltistan</option>
-            <option value="Other">Other / International</option>
-          </select>
+          ${provinceFieldHtml}
         </div>
 
         <div class="muasa-form-field">

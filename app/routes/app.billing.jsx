@@ -42,101 +42,126 @@ export default function BillingPage() {
   const { currentPlan, quota, plans } = useLoaderData();
   const actionData = useActionData();
 
+  const usagePercent = Math.min(100, Math.round((quota.usage / (quota.limit || 1)) * 100));
+
   return (
-    <s-page heading="Subscription Plans & Usage">
+    <div className="muasa-admin-container">
+      {/* Header */}
+      <div className="muasa-admin-header">
+        <div>
+          <h1 className="muasa-admin-title">Subscription Plans & Usage</h1>
+          <p className="muasa-admin-subtitle">
+            Scale your store AI customer care with high-throughput tier options.
+          </p>
+        </div>
+        <div className="muasa-admin-actions">
+          <a href="/app" className="muasa-btn-secondary">
+            ← Back to Dashboard
+          </a>
+        </div>
+      </div>
+
       {actionData?.success && (
-        <s-section heading="Plan Updated">
-          <s-paragraph>{actionData.message}</s-paragraph>
-        </s-section>
+        <div className="muasa-status-banner" style={{ borderLeftColor: "#108043", marginBottom: "20px" }}>
+          <div className="muasa-status-left">
+            <span style={{ fontSize: "20px", color: "#108043" }}>✓</span>
+            <div>
+              <div className="muasa-status-title" style={{ color: "#108043" }}>Plan Updated</div>
+              <p className="muasa-status-desc">{actionData.message}</p>
+            </div>
+          </div>
+        </div>
       )}
 
       {actionData?.error && (
-        <s-section heading="Notice">
-          <s-paragraph>{actionData.error}</s-paragraph>
-        </s-section>
+        <div className="muasa-status-banner error" style={{ marginBottom: "20px" }}>
+          <div className="muasa-status-left">
+            <span style={{ fontSize: "20px", color: "#d72c0d" }}>⚠️</span>
+            <div>
+              <div className="muasa-status-title" style={{ color: "#d72c0d" }}>Notice</div>
+              <p className="muasa-status-desc">{actionData.error}</p>
+            </div>
+          </div>
+        </div>
       )}
 
-      {/* Current Quota Usage */}
-      <s-section heading="Current Monthly Usage">
-        <s-paragraph>
-          You are currently on the <strong>{quota.plan}</strong>.
-        </s-paragraph>
-        <div style={{ marginTop: "12px", background: "#f3f4f6", borderRadius: "8px", overflow: "hidden", height: "16px", maxWidth: "480px" }}>
-          <div
-            style={{
-              width: `${Math.min(100, (quota.usage / (quota.limit || 1)) * 100)}%`,
-              background: quota.usage > quota.limit * 0.9 ? "#ef4444" : "#6366f1",
-              height: "100%"
-            }}
-          />
+      {/* Current Quota Usage Card */}
+      <div className="muasa-card">
+        <div className="muasa-card-header">
+          <h3>Monthly AI Usage & Quota</h3>
+          <span className="muasa-badge info">Active Plan: {quota.plan}</span>
         </div>
-        <s-paragraph style={{ marginTop: "8px" }}>
-          <strong>{quota.usage}</strong> used of <strong>{quota.limit}</strong> included AI messages ({quota.remaining} remaining).
-        </s-paragraph>
-      </s-section>
+        <div className="muasa-card-body">
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+            <span style={{ fontSize: "14px", fontWeight: 600 }}>Message Volume</span>
+            <span style={{ fontSize: "14px", color: "#6d7175" }}>
+              <strong>{quota.usage}</strong> / {quota.limit} ({quota.remaining} remaining)
+            </span>
+          </div>
+          <div style={{ background: "#e1e3e5", height: "10px", borderRadius: "6px", overflow: "hidden" }}>
+            <div
+              style={{
+                width: `${usagePercent}%`,
+                background: usagePercent > 90 ? "#d72c0d" : "#005bd3",
+                height: "100%",
+                transition: "width 0.3s ease"
+              }}
+            />
+          </div>
+        </div>
+      </div>
 
-      {/* Available Plans */}
-      <s-section heading="Available Plans">
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "16px", marginTop: "12px" }}>
-          {Object.values(plans).map((p) => {
-            const isCurrent = (currentPlan || "FREE").toUpperCase() === p.id;
-            return (
-              <div
-                key={p.id}
-                style={{
-                  padding: "20px",
-                  borderRadius: "8px",
-                  border: isCurrent ? "2px solid #6366f1" : "1px solid #e5e7eb",
-                  background: isCurrent ? "#fbfbfe" : "#ffffff",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "space-between"
-                }}
-              >
-                <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <h3 style={{ margin: 0, fontSize: "18px" }}>{p.name}</h3>
-                    {isCurrent && (
-                      <span style={{ fontSize: "11px", fontWeight: 700, background: "#6366f1", color: "#fff", padding: "2px 8px", borderRadius: "12px" }}>
-                        ACTIVE
-                      </span>
-                    )}
+      {/* Available Plans Grid */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "20px" }}>
+        {Object.values(plans).map((p) => {
+          const isCurrent = (currentPlan || "FREE").toUpperCase() === p.id;
+          return (
+            <div
+              key={p.id}
+              className="muasa-card"
+              style={{
+                borderColor: isCurrent ? "#005bd3" : undefined,
+                boxShadow: isCurrent ? "0 0 0 2px rgba(0, 91, 211, 0.25)" : undefined,
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between"
+              }}
+            >
+              <div>
+                <div className="muasa-card-header">
+                  <h3>{p.name}</h3>
+                  {isCurrent && <span className="muasa-badge">CURRENT PLAN</span>}
+                </div>
+                <div className="muasa-card-body">
+                  <div style={{ fontSize: "32px", fontWeight: 700, color: "#202223", marginBottom: "16px" }}>
+                    ${p.price} <span style={{ fontSize: "14px", fontWeight: 400, color: "#6d7175" }}>/ month</span>
                   </div>
-                  <div style={{ fontSize: "24px", fontWeight: 700, margin: "12px 0" }}>
-                    ${p.price} <span style={{ fontSize: "13px", fontWeight: 400, color: "#6b7280" }}>/ month</span>
-                  </div>
-                  <ul style={{ paddingLeft: "18px", color: "#374151", fontSize: "14px", lineHeight: "1.6" }}>
+                  <ul style={{ paddingLeft: "20px", color: "#6d7175", fontSize: "13.5px", lineHeight: "1.7", margin: 0 }}>
                     {p.features.map((feat, idx) => (
-                      <li key={idx}>{feat}</li>
+                      <li key={idx} style={{ color: "#202223" }}>{feat}</li>
                     ))}
                   </ul>
                 </div>
+              </div>
 
-                <Form method="post" style={{ marginTop: "16px" }}>
+              <div style={{ padding: "0 22px 22px 22px" }}>
+                <Form method="post">
                   <input type="hidden" name="plan" value={p.id} />
                   <button
                     type="submit"
                     disabled={isCurrent}
-                    style={{
-                      width: "100%",
-                      padding: "10px",
-                      borderRadius: "6px",
-                      border: "none",
-                      fontWeight: 600,
-                      cursor: isCurrent ? "default" : "pointer",
-                      background: isCurrent ? "#e5e7eb" : "#111111",
-                      color: isCurrent ? "#6b7280" : "#ffffff"
-                    }}
+                    className={isCurrent ? "muasa-btn-secondary" : "muasa-btn-primary"}
+                    style={{ width: "100%", justifyContent: "center", cursor: isCurrent ? "default" : "pointer" }}
                   >
-                    {isCurrent ? "Current Plan" : `Select ${p.name}`}
+                    {isCurrent ? "Active Plan" : `Upgrade to ${p.name}`}
                   </button>
                 </Form>
               </div>
-            );
-          })}
-        </div>
-      </s-section>
-    </s-page>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
