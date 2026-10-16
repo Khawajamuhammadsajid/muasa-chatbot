@@ -12,8 +12,31 @@ export const loader = async ({ request }) => {
   return { showForm: Boolean(login) };
 };
 
+import { useState } from "react";
+
 export default function App() {
   const { showForm } = useLoaderData();
+  const [rawShop, setRawShop] = useState("");
+
+  const cleanSubdomain = rawShop
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\//, "")
+    .replace(/\/.*$/, "");
+
+  let normalizedShop = cleanSubdomain;
+  if (cleanSubdomain) {
+    if (!cleanSubdomain.endsWith(".myshopify.com")) {
+      normalizedShop = `${cleanSubdomain.split(".")[0]}.myshopify.com`;
+    }
+  }
+
+  const handleSubmit = (e) => {
+    if (normalizedShop) {
+      const inputEl = e.currentTarget.querySelector('input[name="shop"]');
+      if (inputEl) inputEl.value = normalizedShop;
+    }
+  };
 
   return (
     <div className={styles.index}>
@@ -34,21 +57,28 @@ export default function App() {
         {showForm && (
           <div className={styles.formCard}>
             <div className={styles.formTitle}>Launch Assistant in Shopify Admin</div>
-            <Form className={styles.form} method="post" action="/auth/login">
+            <Form className={styles.form} method="post" action="/auth/login" onSubmit={handleSubmit}>
               <div className={styles.inputGroup}>
                 <input
                   className={styles.input}
                   type="text"
                   name="shop"
-                  placeholder="your-store.myshopify.com"
+                  value={rawShop}
+                  onChange={(e) => setRawShop(e.target.value)}
+                  placeholder="e.g. your-store.myshopify.com"
                   required
                 />
                 <button className={styles.button} type="submit">
                   Open in Shopify →
                 </button>
               </div>
+              {rawShop && normalizedShop && (
+                <div style={{ fontSize: "12px", color: "#10b981", textAlign: "left", marginTop: "6px" }}>
+                  ✓ Will authenticate with: <strong>{normalizedShop}</strong>
+                </div>
+              )}
               <div className={styles.hint}>
-                Enter your permanent Shopify store domain to access the Merchant Dashboard.
+                Enter your permanent Shopify store domain (e.g. <code>store-name.myshopify.com</code>).
               </div>
             </Form>
           </div>
