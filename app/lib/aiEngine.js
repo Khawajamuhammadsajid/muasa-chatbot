@@ -252,85 +252,6 @@ export async function processCustomerChat({
   // Pre-search catalog for exact/fuzzy keyword matches
   const catalogSearch = searchCatalogProducts(mergedContext.catalog, message, 5, 0);
 
-  // 1.9 Instant Direct Product Search Handler
-  // If the user's query is a short, direct item lookup (e.g. "wax", "i need max", "snowboard", "selling plans ski wax")
-  // and we have an exact/high-scoring match in the store, serve it instantly in sub-50ms
-  const wordCount = trimmed.split(/\s+/).length;
-  const isDirectProductLookup = wordCount <= 5 &&
-    catalogSearch.total > 0 &&
-    catalogSearch.total <= 3 &&
-    !/help|issue|complain|policy|track|ship|refund|return|contact|order\s*status|skin|hair|acne|dry|glow|care|routine|face|problem/i.test(trimmed);
-
-  if (isDirectProductLookup) {
-    const directHydrated = hydrateProductCards(
-      catalogSearch.products.map(p => p.handle),
-      mergedContext.catalog,
-      mergedContext.currencySymbol || "Rs."
-    );
-    const topProduct = catalogSearch.products[0];
-    const topTitle = topProduct?.title || "our product";
-    const isUrdu = /kya|hai|chahiye|mujhe|batao|karo|kitne|salam|aoa/i.test(trimmed);
-
-    // Dynamic Category & Domain Detection from Product Title, Type, Tags & Description
-    const combinedInfo = `${topProduct?.title || ""} ${topProduct?.productType || ""} ${(topProduct?.tags || []).join(" ")} ${topProduct?.description || ""}`.toLowerCase();
-
-    const isSkincare = /skin|serum|cream|lotion|cleanser|moisturi[sz]er|sunscreen|spf|toner|acne|face|glow|dermatolog/i.test(combinedInfo);
-    const isSportsOutdoor = /wax|ski|snowboard|outdoor|sport|board|glid|winter|skat|surf|hiking|bike|racket/i.test(combinedInfo);
-    const isAuto = /auto|car|engine|brake|part|motor|vehicle|filter|oil|tyre|tire|exhaust|bumper/i.test(combinedInfo);
-    const isApparel = /shirt|pant|hoodie|jacket|dress|trouser|wear|cotton|fabric|cloth|tee|denim/i.test(combinedInfo);
-
-    const rawDesc = (topProduct?.description || "")
-      .replace(/<[^>]*>/g, " ")
-      .replace(/\s+/g, " ")
-      .trim();
-
-    let benefitLabel = "Best For / Use Case";
-    let detailsLabel = "Key Details & Features";
-    let defaultBenefitEn = "Engineered for high quality, performance, and everyday reliability.";
-    let defaultBenefitUr = "High quality aur rozana ke behtareen istemaal ke liye tayyar kiya gaya hai.";
-    let defaultDetails = rawDesc || "Authentic high-grade item sourced directly from verified store catalog.";
-
-    if (isSkincare) {
-      benefitLabel = "Best For Skin";
-      detailsLabel = "Key Ingredients & Formula";
-      defaultBenefitEn = "Formulated for daily skin nourishment, hydration, and visible radiance.";
-      defaultBenefitUr = "Rozana skin nourishment, hydration aur healthy glow ke liye behtareen hai.";
-    } else if (isSportsOutdoor) {
-      benefitLabel = "Best For / Application";
-      detailsLabel = "Performance & Specifications";
-      defaultBenefitEn = "Optimized for maximum speed, smooth glide, and base protection in varying conditions.";
-      defaultBenefitUr = "Smooth glide, surface protection aur behtareen performance ke liye design kiya gaya hai.";
-    } else if (isAuto) {
-      benefitLabel = "Compatibility & Fitment";
-      detailsLabel = "Specifications & Durability";
-      defaultBenefitEn = "Precision-engineered for reliable vehicle fitment, durability, and heavy-duty performance.";
-      defaultBenefitUr = "Gari ke perfect fitment, mazbooti aur heavy-duty performance ke liye behtareen hai.";
-    } else if (isApparel) {
-      benefitLabel = "Style & Fit";
-      detailsLabel = "Fabric & Material";
-      defaultBenefitEn = "Crafted with premium comfortable fabric for modern style and all-day comfort.";
-      defaultBenefitUr = "Aala quality fabric aur stylish fitting ke saath rozana pehn-nay ke liye comfortable hai.";
-    }
-
-    const descSnippet = rawDesc.length > 220 ? rawDesc.substring(0, 217) + "..." : (rawDesc || defaultDetails);
-    const currencyStr = mergedContext.currencySymbol || "Rs.";
-    const priceStr = topProduct?.price ? `${currencyStr} ${topProduct.price}` : "In Stock";
-
-    const reply = isUrdu
-      ? `Yeh rahi **${topTitle}** ki mukammal details:\n\n🌟 **${benefitLabel}:** ${defaultBenefitUr}\n📋 **${detailsLabel}:** ${descSnippet}\n💰 **Price:** ${priceStr} | Cash on Delivery (COD) available.\n\nKya aap isko apne cart mein add karna chahtay hain?`
-      : `Here are the details for **${topTitle}**:\n\n🌟 **${benefitLabel}:** ${defaultBenefitEn}\n📋 **${detailsLabel}:** ${descSnippet}\n💰 **Price:** ${priceStr} | Cash on Delivery Available.\n\nWould you like to add it to your cart or explore more options from our store?`;
-
-    return {
-      heading: topTitle,
-      reply: reply,
-      products: directHydrated,
-      totalMatches: catalogSearch.total,
-      hasMore: false,
-      chips: ["Add to cart", "Delivery & COD Info", "Return Policy", "Contact Support"],
-      modelUsed: "instant_product_search"
-    };
-  }
-
   // 2. Fallback if API key missing
   if (!apiKey) {
     recordAiFailure("Server GEMINI_API_KEY is not configured.");
@@ -365,15 +286,15 @@ export async function processCustomerChat({
         generationConfig: {
           responseMimeType: "application/json",
           temperature: 0.3,
-          maxOutputTokens: 800
+          maxOutputTokens: 1200
         }
       });
 
       const promptText = `Shopper: "${message}"\nPlease advise the shopper and return valid JSON.`;
       
-      // Timeout: abort attempt if model hangs longer than 6000ms
+      // Timeout: abort attempt if model hangs longer than 8000ms
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Model request timeout (6000ms exceeded)")), 6000)
+        setTimeout(() => reject(new Error("Model request timeout (8000ms exceeded)")), 8000)
       );
       const generatePromise = model.generateContent(promptText);
 
