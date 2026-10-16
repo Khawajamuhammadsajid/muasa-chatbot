@@ -105,6 +105,14 @@ CRITICAL OPERATING RULES:
    - If there is RECENT CONVERSATION HISTORY above, STRICTLY DO NOT say "Hello", "Hi", "Hello again", "Assalam-o-Alaikum", "Aoa", or "Welcome".
    - Answer the question immediately (e.g. explain the product, answer delivery time, or give advice right away).
 
+6. PRODUCT DETAILS & SKIN ADVISORY (MANDATORY):
+   - Whenever the shopper searches for or asks about ANY product (e.g. sunscreen, moisturiser, cleanser, acne, glow, best sellers):
+     1. ALWAYS provide the product's details FIRST in your reply text before recommending:
+        - 🌿 **Best For Skin / Skin Type:** (e.g. daily SPF 60 defense, anti-acne, intense hydration, glowing skin, sensitive skin).
+        - 🧪 **Key Ingredients & Formula:** (Highlight the active ingredients and formulation from the catalog details, e.g. Zinc Oxide, Niacinamide, Hyaluronic Acid, Aloe Vera, Salicylic Acid).
+        - 💡 **Key Benefits:** (Explain clearly how it benefits their skin).
+     2. Keep it structured, engaging, and clear so the customer learns about the product's ingredients and skin benefits right before the product cards.
+
 AVAILABLE STORE PRODUCTS:
 ${productSnippets || "Catalog currently updating."}
 ${historySection}
@@ -254,12 +262,22 @@ export async function processCustomerChat({
       mergedContext.catalog,
       mergedContext.currencySymbol || "Rs."
     );
+    const topProduct = catalogSearch.products[0];
+    const topTitle = topProduct?.title || "our product";
     const isUrdu = /kya|hai|chahiye|mujhe|batao|karo|kitne|salam|aoa/i.test(trimmed);
-    const topTitle = catalogSearch.products[0]?.title || "our product";
+
+    const rawDesc = (topProduct?.description || "")
+      .replace(/<[^>]*>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    const descSnippet = rawDesc.length > 220 ? rawDesc.substring(0, 217) + "..." : (rawDesc || "Formulated with premium dermatological ingredients for visible results.");
+    const currencyStr = mergedContext.currencySymbol || "Rs.";
+    const priceStr = topProduct?.price ? `${currencyStr} ${topProduct.price}` : "In Stock";
 
     const reply = isUrdu
-      ? `Hamaray pas **${topTitle}** available hai! Ye item store me in-stock hai. Kya aap iski details ya order ke baaray mein mazeed janna chahtay hain?`
-      : `Yes, we have **${topTitle}** in stock! Would you like help with details, sizing, or adding it to your cart?`;
+      ? `Yeh rahi **${topTitle}** ki mukammal details:\n\n🌿 **Best For Skin:** Rozana skin nourishment aur healthy glow ke liye behtareen hai. Har qisam ki skin ke liye gentle aur safe hai.\n🧪 **Key Ingredients & Formula:** ${descSnippet}\n💰 **Price:** ${priceStr} | Cash on Delivery (COD) poore Pakistan me available hai.\n\nKya aap isko apne cart mein add karna chahtay hain?`
+      : `Here are the details for **${topTitle}**:\n\n🌿 **Best For Skin:** Specially formulated for daily protection, deep hydration, and visible radiance. Suitable for all skin types.\n🧪 **Key Ingredients & Formula:** ${descSnippet}\n💰 **Price:** ${priceStr} | Cash on Delivery Available.\n\nWould you like to add it to your cart or explore matching routine products?`;
 
     return {
       heading: topTitle,

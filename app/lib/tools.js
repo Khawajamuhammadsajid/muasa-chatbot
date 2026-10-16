@@ -277,9 +277,20 @@ export function hydrateProductCards(identifiers = [], storeCatalog = [], currenc
       rawPrice = rawPrice.replace(/^[^\d.]+/, "").trim();
       const finalPrice = rawPrice ? `${currencySymbol} ${rawPrice}` : `${currencySymbol} Check in store`;
 
+      // Clean short description/benefits
+      let cleanDesc = (product.description || "")
+        .replace(/<[^>]*>/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+      if (cleanDesc.length > 130) {
+        cleanDesc = cleanDesc.substring(0, 127) + "...";
+      }
+
       cards.push({
         id: String(product.id).replace(/\D+/g, ""),
         title: product.title,
+        handle: product.handle || "",
+        description: cleanDesc,
         price: finalPrice,
         image: product.image || product.imageUrl || product.images?.[0]?.src || "https://cdn.shopify.com/s/files/1/0533/2089/files/placeholder-images-image_large.png",
         variantId: cleanVariantId,

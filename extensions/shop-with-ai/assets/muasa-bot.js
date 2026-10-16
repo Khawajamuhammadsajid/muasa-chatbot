@@ -393,7 +393,21 @@
       html += `<div class="muasa-msg-heading">${heading}</div>`;
     }
 
-    // Render Product Cards if any
+    // Format text FIRST so product details, ingredients & "best for skin" description appear before the cards
+    if (text) {
+      const escaped = (text || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+      const formatted = escaped
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\n/g, '<br/>');
+
+      html += `<div class="muasa-msg-text" style="line-height: 1.5; margin-bottom: ${products && products.length > 0 ? '12px' : '0'};">${formatted}</div>`;
+    }
+
+    // THEN Render Product Cards if any
     if (products && products.length > 0) {
       products.forEach((p) => {
         const imgUrl = p.image || 'https://via.placeholder.com/85?text=Product';
@@ -408,21 +422,23 @@
         }
         const variantId = p.primaryVariantId || p.variantId || '';
         const productUrl = p.url || `/products/${p.handle || ''}`;
+        const descHtml = p.description ? `<div class="muasa-card-desc">${escapeHtml(p.description)}</div>` : '';
 
         html += `
           <div class="muasa-product-card" data-product-handle="${p.handle || ''}">
             <div class="muasa-product-card-top">
               <div class="muasa-card-img-wrap">
-                <img class="muasa-card-img" src="${imgUrl}" alt="${p.title}" loading="lazy"/>
+                <img class="muasa-card-img" src="${imgUrl}" alt="${escapeHtml(p.title)}" loading="lazy"/>
               </div>
               <div class="muasa-card-details">
-                <a class="muasa-card-title" href="${productUrl}" target="_blank" rel="noopener">${p.title}</a>
+                <a class="muasa-card-title" href="${productUrl}" target="_blank" rel="noopener">${escapeHtml(p.title)}</a>
                 <div class="muasa-card-price">${priceText}</div>
+                ${descHtml}
               </div>
             </div>
             <div class="muasa-card-actions">
               <button class="muasa-card-btn muasa-btn-add" data-variant-id="${variantId}" type="button">
-                🛒 Add to cart
+                + Add to cart
               </button>
               <a class="muasa-card-btn muasa-btn-view" href="${productUrl}" target="_blank" rel="noopener">
                 View product ↗
@@ -432,18 +448,6 @@
         `;
       });
     }
-
-    // Format text
-    const escaped = (text || '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
-
-    const formatted = escaped
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\n/g, '<br/>');
-
-    html += `<div style="margin-top: ${products.length > 0 ? '12px' : '0'}; line-height: 1.5;">${formatted}</div>`;
 
     // Load More Button if hasMore is true
     if (hasMore && sender === 'ai') {
