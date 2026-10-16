@@ -40,6 +40,27 @@ const DRAFT_ORDER_COMPLETE_MUTATION = `#graphql
   }
 `;
 
+const ORDER_CREATE_MUTATION = `#graphql
+  mutation OrderCreate($order: OrderCreateOrderInput!) {
+    orderCreate(order: $order) {
+      order {
+        id
+        name
+        totalPriceSet {
+          shopMoney {
+            amount
+            currencyCode
+          }
+        }
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+`;
+
 /**
  * Normalizes phone numbers to standard E.164 format (+923001234567).
  * Handles local Pakistan formats: 03001234567, 0300 1234567, 0300-1234567, etc.
@@ -154,6 +175,75 @@ export async function createChatOrder(admin, customer = {}, items = []) {
     ]
   };
 
+  // Primary Strategy: Direct Official Order Creation in Shopify Admin -> Orders
+  try {
+    const directOrderInput = {
+      email: email,
+      phone: validE164Phone || undefined,
+      financialStatus: isCod ? "PENDING" : "PAID",
+      note: `Order via Muasa AI Chatbot (${isCod ? "Cash on Delivery" : "Online Payment"})\nCustomer Phone: ${rawPhone || "Not Provided"}\nCustomer Instructions: ${notes || "None"}`,
+      tags: [
+        "Muasa AI Chatbot",
+        isCod ? "COD" : "Online Payment",
+        "In-Chat Checkout"
+      ],
+      shippingAddress: {
+        firstName,
+        lastName,
+        address1,
+        address2,
+        city,
+        province,
+        zip,
+        country: "Pakistan",
+        phone: validE164Phone || undefined
+      },
+      billingAddress: {
+        firstName,
+        lastName,
+        address1,
+        address2,
+        city,
+        province,
+        zip,
+        country: "Pakistan",
+        phone: validE164Phone || undefined
+      },
+      lineItems,
+      customAttributes: [
+        { key: "Order Source", value: "Muasa AI Chatbot" },
+        { key: "Customer Phone", value: rawPhone || "Not Provided" },
+        { key: "Payment Method", value: isCod ? "Cash on Delivery (COD)" : "Online Card" }
+      ]
+    };
+
+    console.log("[OrderService] Attempting direct orderCreate mutation for Shopify Admin -> Orders...");
+    const orderRes = await admin.graphql(ORDER_CREATE_MUTATION, {
+      variables: { order: directOrderInput }
+    });
+
+    const orderJson = await orderRes.json();
+    const orderData = orderJson.data?.orderCreate;
+
+    if (orderData?.order?.name) {
+      console.log(`[OrderService] Official Shopify order created directly: ${orderData.order.name}`);
+      return {
+        success: true,
+        orderNumber: orderData.order.name,
+        orderId: orderData.order.id,
+        isOfficialOrder: true,
+        totalPrice: orderData.order.totalPriceSet?.shopMoney?.amount || customer.totalPrice || "0.00"
+      };
+    }
+
+    if (orderData?.userErrors && orderData.userErrors.length > 0) {
+      console.warn("[OrderService] orderCreate userErrors:", orderData.userErrors);
+    }
+  } catch (directErr) {
+    console.warn("[OrderService] orderCreate attempt warning:", directErr.message);
+  }
+
+  // Secondary Strategy: Draft Order Creation & Auto-Completion to Official Order
   let draftOrder = null;
 
   try {
