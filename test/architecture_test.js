@@ -6,6 +6,7 @@
 import { checkRateLimit } from "../app/lib/rateLimiter.js";
 import { checkMessageQuota } from "../app/lib/billing.js";
 import { executeTool, hydrateProductCards } from "../app/lib/tools.js";
+import { normalizePhoneNumber } from "../app/services/orderService.js";
 import { z } from "zod";
 
 const mockCatalog = [
@@ -157,6 +158,17 @@ async function runTests() {
   const longText = "a".repeat(501);
   const longParsed = ChatRequestSchema.safeParse({ message: longText });
   assert(longParsed.success === false, "501-character message rejected (max 500)");
+
+  // --------------------------------------------------------------------------
+  // TEST GROUP 6: Phone Normalization & E.164 Resilience
+  // --------------------------------------------------------------------------
+  console.log("\n[6] Phone Normalization & E.164 Resilience:");
+  assert(normalizePhoneNumber("03001234567") === "+923001234567", "Normalizes local 03xx format: 03001234567 -> +923001234567");
+  assert(normalizePhoneNumber("0300 1234567") === "+923001234567", "Strips spaces: '0300 1234567' -> +923001234567");
+  assert(normalizePhoneNumber("0300-1234567") === "+923001234567", "Strips dashes: '0300-1234567' -> +923001234567");
+  assert(normalizePhoneNumber("+92 300 1234567") === "+923001234567", "Handles existing +92 with spaces: '+92 300 1234567' -> +923001234567");
+  assert(normalizePhoneNumber("923001234567") === "+923001234567", "Adds leading + if starting with 92: '923001234567' -> +923001234567");
+  assert(normalizePhoneNumber("invalid") === null, "Returns null safely for invalid non-digits");
 
   console.log("\n============================================================");
   console.log(`RESULTS: ${passed} PASSED / ${passed + failed} TOTAL (${failed} FAILED)`);

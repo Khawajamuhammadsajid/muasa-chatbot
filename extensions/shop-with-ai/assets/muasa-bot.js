@@ -868,6 +868,7 @@
 
       <div class="muasa-checkout-section-title">Contact Information</div>
       <form id="muasa-order-form" class="muasa-checkout-form">
+        <div id="muasa-checkout-error-msg" style="display: none; background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; color: #fca5a5; padding: 10px 12px; border-radius: 10px; font-size: 12.5px; line-height: 1.4;"></div>
         <div class="muasa-form-field">
           <label class="muasa-form-label" for="muasa-cust-email">Email Address *</label>
           <input type="email" id="muasa-cust-email" class="muasa-form-input" placeholder="e.g. customer@gmail.com" required />
@@ -982,6 +983,9 @@
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const submitBtn = document.getElementById('muasa-submit-order-btn');
+      const errorBox = document.getElementById('muasa-checkout-error-msg');
+      if (errorBox) errorBox.style.display = 'none';
+
       if (submitBtn) {
         submitBtn.disabled = true;
         submitBtn.textContent = 'Placing Order Directly with Store...';
@@ -1045,7 +1049,14 @@
           submitBtn.disabled = false;
           submitBtn.textContent = `✓ Complete Order (${config.currencySymbol} ${totalFormatted})`;
         }
-        alert('Could not complete order: ' + (err.message || 'Please verify your details and try again.'));
+        const errorBox = document.getElementById('muasa-checkout-error-msg');
+        if (errorBox) {
+          errorBox.textContent = '⚠️ ' + (err.message || 'Could not complete order. Please verify your details.');
+          errorBox.style.display = 'block';
+          errorBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } else {
+          alert('Could not complete order: ' + (err.message || 'Please verify your details and try again.'));
+        }
         return;
       }
 

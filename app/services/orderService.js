@@ -41,6 +41,39 @@ const DRAFT_ORDER_COMPLETE_MUTATION = `#graphql
 `;
 
 /**
+ * Normalizes phone numbers to standard E.164 format (+923001234567).
+ * Handles local Pakistan formats: 03001234567, 0300 1234567, 0300-1234567, etc.
+ * Returns valid E.164 string or null if invalid.
+ */
+export function normalizePhoneNumber(rawPhone, defaultCountryCode = "92") {
+  if (!rawPhone || typeof rawPhone !== "string") return null;
+
+  // Strip spaces, dashes, dots, parentheses
+  let cleaned = rawPhone.replace(/[\s\-\(\)\.]/g, "").trim();
+  if (!cleaned) return null;
+
+  // Strip leading plus for uniform processing
+  if (cleaned.startsWith("+")) {
+    cleaned = cleaned.substring(1);
+  }
+
+  // Handle local 03xx format
+  if (cleaned.startsWith("0")) {
+    cleaned = defaultCountryCode + cleaned.substring(1);
+  } else if (!cleaned.startsWith(defaultCountryCode) && cleaned.length === 10) {
+    cleaned = defaultCountryCode + cleaned;
+  }
+
+  const e164 = `+${cleaned}`;
+  // E.164 standard: + followed by 8 to 15 digits
+  if (/^\+[1-9]\d{7,14}$/.test(e164)) {
+    return e164;
+  }
+
+  return null;
+}
+
+/**
  * Creates an order directly from the in-chat checkout form.
  *
  * @param {object} admin - Authenticated Shopify Admin GraphQL client
@@ -72,7 +105,8 @@ export async function createChatOrder(admin, customer = {}, items = []) {
   const isCod = (customer.paymentMethod || "COD").toUpperCase() === "COD";
   const firstName = customer.firstName?.trim() || "Customer";
   const lastName = customer.lastName?.trim() || "";
-  const phone = customer.phone?.trim() || undefined;
+  const rawPhone = customer.phone?.trim() || "";
+  const validE164Phone = normalizePhoneNumber(rawPhone);
   const email = customer.email?.trim() || undefined;
   const address1 = customer.address1?.trim() || "Address Not Provided";
   const address2 = customer.address2?.trim() || "";
@@ -83,8 +117,8 @@ export async function createChatOrder(admin, customer = {}, items = []) {
 
   const draftInput = {
     email: email,
-    phone: phone,
-    note: `Order via Muasa AI Chatbot (${isCod ? "Cash on Delivery" : "Online Payment"})\nCustomer Instructions: ${notes || "None"}`,
+    phone: validE164Phone || undefined,
+    note: `Order via Muasa AI Chatbot (${isCod ? "Cash on Delivery" : "Online Payment"})\nCustomer Phone: ${rawPhone || "Not Provided"}\nCustomer Instructions: ${notes || "None"}`,
     tags: [
       "Muasa AI Chatbot",
       isCod ? "COD" : "Online Payment",
@@ -99,7 +133,7 @@ export async function createChatOrder(admin, customer = {}, items = []) {
       province,
       zip,
       country: "Pakistan",
-      phone
+      phone: validE164Phone || undefined
     },
     billingAddress: {
       firstName,
@@ -110,26 +144,46 @@ export async function createChatOrder(admin, customer = {}, items = []) {
       province,
       zip,
       country: "Pakistan",
-      phone
+      phone: validE164Phone || undefined
     },
     lineItems,
     customAttributes: [
       { key: "Order Source", value: "Muasa AI Chatbot" },
+      { key: "Customer Phone", value: rawPhone || "Not Provided" },
       { key: "Payment Method", value: isCod ? "Cash on Delivery (COD)" : "Online Card" }
     ]
   };
 
-  const createRes = await admin.graphql(DRAFT_ORDER_CREATE_MUTATION, {
+  let createRes = await admin.graphql(DRAFT_ORDER_CREATE_MUTATION, {
     variables: { input: draftInput }
   });
 
-  const createJson = await createRes.json();
+  let createJson = await createRes.json();
   if (createJson.errors && createJson.errors.length > 0) {
     console.error("[OrderService] GraphQL errors on draftOrderCreate:", createJson.errors);
     throw new Error(createJson.errors[0]?.message || "Shopify GraphQL error");
   }
 
-  const draftData = createJson.data?.draftOrderCreate;
+  let draftData = createJson.data?.draftOrderCreate;
+
+  // Auto-recovery fallback: If Shopify rejects phone format ("Phone is invalid"), strip strict phone field and retry immediately
+  const hasPhoneError = draftData?.userErrors?.some(
+    (e) => /phone/i.test(e.field?.join(" ") || "") || /phone/i.test(e.message || "")
+  );
+
+  if (hasPhoneError) {
+    console.warn("[OrderService] Shopify rejected phone format, retrying without strict phone field (phone preserved in note & attributes)...");
+    delete draftInput.phone;
+    if (draftInput.shippingAddress) delete draftInput.shippingAddress.phone;
+    if (draftInput.billingAddress) delete draftInput.billingAddress.phone;
+
+    createRes = await admin.graphql(DRAFT_ORDER_CREATE_MUTATION, {
+      variables: { input: draftInput }
+    });
+    createJson = await createRes.json();
+    draftData = createJson.data?.draftOrderCreate;
+  }
+
   if (draftData?.userErrors && draftData.userErrors.length > 0) {
     console.error("[OrderService] User errors on draftOrderCreate:", draftData.userErrors);
     throw new Error(draftData.userErrors[0]?.message || "Failed to create draft order");
